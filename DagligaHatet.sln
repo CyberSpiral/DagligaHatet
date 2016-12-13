@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DagligaHatet", "DagligaHatet\DagligaHatet\DagligaHatet.csproj", "{0EE90BCF-54C7-4D90-905B-D00C1FC7E4FA}"
+EndProject
+Project("{96E2B04D-8817-42C6-938A-82C39BA4D311}") = "DagligaHatetContent", "DagligaHatet\DagligaHatetContent\DagligaHatetContent.contentproj", "{3D7FD91B-3D47-4F1A-B951-FFA63974251A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0EE90BCF-54C7-4D90-905B-D00C1FC7E4FA}.Debug|x86.ActiveCfg = Debug|x86
+		{0EE90BCF-54C7-4D90-905B-D00C1FC7E4FA}.Debug|x86.Build.0 = Debug|x86
+		{0EE90BCF-54C7-4D90-905B-D00C1FC7E4FA}.Release|x86.ActiveCfg = Release|x86
+		{0EE90BCF-54C7-4D90-905B-D00C1FC7E4FA}.Release|x86.Build.0 = Release|x86
+		{3D7FD91B-3D47-4F1A-B951-FFA63974251A}.Debug|x86.ActiveCfg = Debug|x86
+		{3D7FD91B-3D47-4F1A-B951-FFA63974251A}.Release|x86.ActiveCfg = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

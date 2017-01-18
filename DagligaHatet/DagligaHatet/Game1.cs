@@ -13,15 +13,16 @@ namespace DagligaHatet {
     /// <summary>
     /// This is the main type for your game
     /// </summary>
+    //public delegate void ClickedEventHandler(object sender, EventArgs e);
+
+
     public class Game1 : Microsoft.Xna.Framework.Game {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        //Camera2d cam = new Camera2d();
         List<Tile> map = new List<Tile>();
         Button moveButton;
         Button attackButton;
         List<Tile> selectedTiles = new List<Tile>();
-        
 
         List<PlayerCharacter> playerCharacters = new List<PlayerCharacter>();
         List<string> order = new List<string>();
@@ -60,12 +61,8 @@ namespace DagligaHatet {
             attackButton = new Button(new Rectangle(200, 30, 100, 60), Content.Load<Texture2D>("Attack"));
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            /*cam.Pos = new Vector2(500.0f, 200.0f);
-            cam.Rotation = (float)Math.PI/8;
-            cam.Zoom = 1.3f;
-            cam._pos.Y = cam._pos.Y - 10;
-            cam._pos.X = cam._pos.X + 105;*/
-            
+
+            //Clicked += MouseClick;
 
 
             for (int x = 0; x < 20; x++) {
@@ -77,18 +74,68 @@ namespace DagligaHatet {
 
 
             order.Add("Knight");
-            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Knight1"), map[0].Position, map[0].MapPosition, "Knight", 3, 3, attackStyle.around, 20, 5));
+            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Knight1"), map[0].Position, map[0].MapPosition, "Knight", 3, 3, attackStyle.around, new AttackMelee(), 20, 5));
 
             order.Add("Wizard");
-            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Wizard1"), map[45].Position, map[45].MapPosition, "Wizard", 4, 4, attackStyle.linecross, 15, 4));
+            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Wizard1"), map[45].Position, map[45].MapPosition, "Wizard", 4, 4, attackStyle.linecross, new AttackRangeCross(), 15, 4));
 
             order.Add("Ranger");
-            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Ranger1"), map[85].Position, map[85].MapPosition, "Ranger", 6, 5, attackStyle.lineXcross, 10, 3));
+            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Ranger1"), map[85].Position, map[85].MapPosition, "Ranger", 6, 5, attackStyle.lineXcross, new AttackRangeXCross(), 10, 3));
 
             // TODO: use this.Content to load your game content here
 
 
         }
+
+
+        /*Event test
+        public event ClickedEventHandler Clicked;
+        protected virtual void OnClicked(EventArgs e) {
+            if (Clicked != null)
+                Clicked(this, e);
+        }
+        
+        private void MouseClick(object sender, EventArgs e) {
+
+            int indexNumber = playerCharacters.FindIndex(x => x.Name == order[orderNumber]);
+            MouseState mus = Mouse.GetState();
+            Rectangle musRec = new Rectangle(mus.X, mus.Y, 1, 1);
+
+            if (selectedTiles.Exists(x => x.Collision.Intersects(musRec))) {
+                int tileNumber = selectedTiles.FindIndex(x => x.Collision.Intersects(musRec));
+                if (phase == states.MovePhase1) {
+                    List<List<Vector2>> Path = new List<List<Vector2>>();
+
+                    map.Find(x => x.MapPosition == playerCharacters[indexNumber].MapPosition).Occupied = false;
+                    int mapNumber = map.FindIndex(x => x.Collision.Intersects(musRec));
+                    playerCharacters[indexNumber].Position = map[mapNumber].Position;
+                    playerCharacters[indexNumber].MapPosition = map[mapNumber].MapPosition;
+                    map[mapNumber].Occupied = true;
+                    selectedTiles.Clear();
+
+                    //Round over/Move over
+                    phase = states.ChoosePhase;
+                    orderNumber++;
+                }
+                else if (phase == states.AttackPhase1 && selectedTiles[tileNumber].Occupied == true) {
+                    //Damage
+                    Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
+                    playerCharacters.Where(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).ToList().ForEach(x => x.Health = x.Health - playerCharacters[indexNumber].Damage);
+
+                    Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
+                    selectedTiles.Clear();
+
+
+                    //Round over/Attack over
+                    phase = states.ChoosePhase;
+                    orderNumber++;
+                }
+            }
+            if (orderNumber >= order.Count) {
+                orderNumber = 0;
+            }
+        }
+        */
 
         /// <summary>
         /// UnloadContent will be called once per game and is the place to unload
@@ -107,6 +154,11 @@ namespace DagligaHatet {
             // Allows the game to exit
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();
+
+            //Event test
+            /*if (oldMouse.LeftButton == ButtonState.Released && Mouse.GetState().LeftButton == ButtonState.Pressed) {
+                OnClicked(EventArgs.Empty);
+            }*/
 
             if (playerCharacters.Exists(x => x.Name == order[orderNumber])) {
                 int indexNumber = playerCharacters.FindIndex(x => x.Name == order[orderNumber]);
@@ -128,47 +180,14 @@ namespace DagligaHatet {
                 if (attackButton.Update(Mouse.GetState(), oldMouse)) {
                     if (phase == states.ChoosePhase) {
                         selectedTiles.Clear();
-                        switch (playerCharacters[indexNumber].Style) {
-                            case attackStyle.around:
-                                selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) + Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].Range));
-
-                                selectedTiles.RemoveAll(x => x.MapPosition == playerCharacters[indexNumber].MapPosition);
-                                phase = states.AttackPhase1;
-                                break;
-                            case attackStyle.linecross:
-                                selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) < playerCharacters[indexNumber].Range &&
-                                x.MapPosition.Y == playerCharacters[indexNumber].MapPosition.Y ||
-                                Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].Range &&
-                                x.MapPosition.X == playerCharacters[indexNumber].MapPosition.X));
-
-                                selectedTiles.RemoveAll(x => x.MapPosition == playerCharacters[indexNumber].MapPosition);
-                                phase = states.AttackPhase1;
-                                break;
-                            case attackStyle.lineXcross:
-                                selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) < playerCharacters[indexNumber].Range &&
-                                x.MapPosition.Y == playerCharacters[indexNumber].MapPosition.Y ||
-                                Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].Range &&
-                                x.MapPosition.X == playerCharacters[indexNumber].MapPosition.X));
-                                selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) == Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) && Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) + Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].Range * 1.2));
-
-                                selectedTiles.RemoveAll(x => x.MapPosition == playerCharacters[indexNumber].MapPosition);
-                                phase = states.AttackPhase1;
-                                break;
-                            default:
-                                selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) + Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].Range));
-
-                                selectedTiles.RemoveAll(x => x.MapPosition == playerCharacters[indexNumber].MapPosition);
-                                phase = states.AttackPhase1;
-                                break;
-                        }
+                        playerCharacters[indexNumber].Attack.PrepareSkill(playerCharacters, indexNumber, map, selectedTiles);
+                        phase = states.AttackPhase1;
                     }
                     else if (phase == states.AttackPhase1) {
                         selectedTiles.Clear();
                         phase = states.ChoosePhase;
                     }
                 }
-
-
 
                 if (Mouse.GetState().LeftButton == ButtonState.Pressed && oldMouse.LeftButton == ButtonState.Released) {
                     MouseState mus = Mouse.GetState();
@@ -191,13 +210,8 @@ namespace DagligaHatet {
                             orderNumber++;
                         }
                         else if (phase == states.AttackPhase1 && selectedTiles[tileNumber].Occupied == true) {
-                            //Damage
-                            Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
-                            playerCharacters.Where(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).ToList().ForEach(x => x.Health = x.Health - playerCharacters[indexNumber].Damage);
 
-                            Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
-                            selectedTiles.Clear();
-
+                            playerCharacters[indexNumber].Attack.InvokeSkill(playerCharacters, indexNumber, map, selectedTiles, tileNumber);
 
                             //Round over/Attack over
                             phase = states.ChoosePhase;

@@ -16,6 +16,8 @@ namespace DagligaHatet {
         public abstract void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber);
     }
 
+    #region Attacks 
+
     public class Attack : Skill {
         public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
 
@@ -61,4 +63,21 @@ namespace DagligaHatet {
             selectedTiles.RemoveAll(x => x.MapPosition == playerCharacters[indexNumber].MapPosition);
         }
     }
+    #endregion
+
+    #region MageSkills
+
+    public class HealMageSkill : Skill {
+        public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
+            selectedTiles.AddRange(map.Where(x => x.Occupied == true &&
+            (Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X)
+            + Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].SkillRange)));
+        }
+
+        public override void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber) {
+
+        }
+    }
+
+    #endregion
 }

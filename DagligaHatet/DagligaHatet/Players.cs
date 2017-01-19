@@ -37,8 +37,9 @@ namespace DagligaHatet {
         public int Health { get; set; }
         public int Damage { get; }
         public Skill Attack { get; }
+        public int SkillRange { get; set; }
 
-        public PlayerCharacter(Texture2D tex, Vector2 position, Vector2 mapPosition, string name, int range, int movementSpeed, attackStyle style, Skill attack, int health, int damage) : base(tex, position, mapPosition, name) {
+        public PlayerCharacter(Texture2D tex, Vector2 position, Vector2 mapPosition, string name, int range, int movementSpeed, attackStyle style, Skill attack, int skillRange, int health, int damage) : base(tex, position, mapPosition, name) {
             MoveSpeed = movementSpeed;
             Range = range;
             Style = style;

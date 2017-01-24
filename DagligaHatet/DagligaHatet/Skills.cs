@@ -5,10 +5,6 @@ using System.Text;
 
 namespace DagligaHatet {
 
-    public enum attackStyle {
-        around, linecross, lineXcross
-    }
-
     public abstract class Skill {
 
         public abstract void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles);
@@ -65,9 +61,9 @@ namespace DagligaHatet {
     }
     #endregion
 
-    #region MageSkills
+    #region Wizardskills
 
-    public class HealMageSkill : Skill {
+    public class HealWizardSkill : Skill {
         public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
             selectedTiles.AddRange(map.Where(x => x.Occupied == true &&
             (Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X)

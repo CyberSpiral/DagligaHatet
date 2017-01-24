@@ -32,20 +32,37 @@ namespace DagligaHatet {
     }
     public class PlayerCharacter : Object {
         public int MoveSpeed { get; }
-        public attackStyle Style { get; }
-        public int Range { get; }
         public int Health { get; set; }
-        public int Damage { get; }
+
         public Skill Attack { get; }
+        public int Damage { get; }
+        public int Range { get; }
+
+        public Skill Skill { get; }
         public int SkillRange { get; set; }
 
-        public PlayerCharacter(Texture2D tex, Vector2 position, Vector2 mapPosition, string name, int range, int movementSpeed, attackStyle style, Skill attack, int skillRange, int health, int damage) : base(tex, position, mapPosition, name) {
+
+        /// <summary>
+        /// Creating a new player controlled character
+        /// </summary>
+        /// <param name="tex">Sprite texture</param>
+        /// <param name="position">Position in pixels</param>
+        /// <param name="mapPosition">Position in map-coordinates</param>
+        /// <param name="name">Name to identify character</param>
+        /// <param name="attack">Class of normal attack</param>
+        /// <param name="range">Attack range</param>
+        /// <param name="damage">Damage of normal attack</param>
+        /// <param name="skill">Class of specific skill</param>
+        /// <param name="skillRange">Range of skill</param>
+        /// <param name="movementSpeed">Movement speed in tiles</param>
+        /// <param name="health">Health points</param>
+        public PlayerCharacter(Texture2D tex, Vector2 position, Vector2 mapPosition, string name, Skill attack, int range, int damage, Skill skill, int skillRange, int movementSpeed, int health) : base(tex, position, mapPosition, name) {
             MoveSpeed = movementSpeed;
             Range = range;
-            Style = style;
             Health = health;
             Damage = damage;
             Attack = attack;
+            Skill = skill;
         }
     }
 

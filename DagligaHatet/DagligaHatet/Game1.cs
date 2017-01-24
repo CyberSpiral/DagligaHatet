@@ -22,6 +22,7 @@ namespace DagligaHatet {
         List<Tile> map = new List<Tile>();
         Button moveButton;
         Button attackButton;
+        Button skillButton;
         List<Tile> selectedTiles = new List<Tile>();
 
         List<PlayerCharacter> playerCharacters = new List<PlayerCharacter>();
@@ -59,6 +60,7 @@ namespace DagligaHatet {
         protected override void LoadContent() {
             moveButton = new DagligaHatet.Button(new Rectangle(30, 30, 100, 60), Content.Load<Texture2D>("Move"));
             attackButton = new Button(new Rectangle(200, 30, 100, 60), Content.Load<Texture2D>("Attack"));
+            skillButton = new Button(new Rectangle(400, 30, 100, 60), Content.Load<Texture2D>("Skill"));
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
@@ -73,14 +75,14 @@ namespace DagligaHatet {
 
 
 
-            order.Add("Knight");
-            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Knight1"), map[0].Position, map[0].MapPosition, "Knight", 3, 3, attackStyle.around, new AttackMelee(), 20, 5));
+            //order.Add("Knight");
+            //playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Knight1"), map[0].Position, map[0].MapPosition, "Knight", 3, 3, attackStyle.around, new AttackMelee(), 20, 5));
 
             order.Add("Wizard");
-            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Wizard1"), map[45].Position, map[45].MapPosition, "Wizard", 4, 4, attackStyle.linecross, new AttackRangeCross(), 15, 4));
+            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Wizard1"), map[45].Position, map[45].MapPosition, "Wizard", new AttackRangeCross(), 4, 3, new HealWizardSkill(), 100, 4, 10));
 
             order.Add("Ranger");
-            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Ranger1"), map[85].Position, map[85].MapPosition, "Ranger", 6, 5, attackStyle.lineXcross, new AttackRangeXCross(), 10, 3));
+            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Ranger1"), map[85].Position, map[85].MapPosition, "Ranger", new AttackRangeXCross(), 5, 2, new HealWizardSkill(), 100, 5, 13));
 
             // TODO: use this.Content to load your game content here
 
@@ -189,6 +191,18 @@ namespace DagligaHatet {
                     }
                 }
 
+                if (skillButton.Update(Mouse.GetState(), oldMouse)) {
+                    if (phase == states.ChoosePhase) {
+                        selectedTiles.Clear();
+                        playerCharacters[indexNumber].Skill.PrepareSkill(playerCharacters, indexNumber, map, selectedTiles);
+                        phase = states.SkillPhase1;
+                    }
+                    else if(phase == states.SkillPhase1) {
+                        selectedTiles.Clear();
+                        phase = states.ChoosePhase;
+                    }
+                }
+
                 if (Mouse.GetState().LeftButton == ButtonState.Pressed && oldMouse.LeftButton == ButtonState.Released) {
                     MouseState mus = Mouse.GetState();
                     Rectangle musRec = new Rectangle(mus.X, mus.Y, 1, 1);
@@ -210,10 +224,13 @@ namespace DagligaHatet {
                             orderNumber++;
                         }
                         else if (phase == states.AttackPhase1 && selectedTiles[tileNumber].Occupied == true) {
-
                             playerCharacters[indexNumber].Attack.InvokeSkill(playerCharacters, indexNumber, map, selectedTiles, tileNumber);
-
                             //Round over/Attack over
+                            phase = states.ChoosePhase;
+                            orderNumber++;
+                        }
+                        else if (phase == states.SkillPhase1) {
+                            playerCharacters[indexNumber].Skill.InvokeSkill(playerCharacters, indexNumber, map, selectedTiles, tileNumber);
                             phase = states.ChoosePhase;
                             orderNumber++;
                         }
@@ -254,6 +271,10 @@ namespace DagligaHatet {
                 case states.ChoosePhase:
                     spriteBatch.Draw(moveButton.Texture, moveButton.Hitbox, Color.White);
                     spriteBatch.Draw(attackButton.Texture, attackButton.Hitbox, Color.White);
+                    spriteBatch.Draw(skillButton.Texture, skillButton.Hitbox, Color.White);
+                    break;
+                case states.SkillPhase1:
+                    spriteBatch.Draw(skillButton.Texture, skillButton.Hitbox, Color.White);
                     break;
                 default:
                     break;

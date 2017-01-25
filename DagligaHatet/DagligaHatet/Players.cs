@@ -63,6 +63,7 @@ namespace DagligaHatet {
             Damage = damage;
             Attack = attack;
             Skill = skill;
+            SkillRange = skillRange;
         }
     }
 

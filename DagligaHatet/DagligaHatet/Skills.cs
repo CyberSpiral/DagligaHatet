@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,14 +8,33 @@ namespace DagligaHatet {
 
     public abstract class Skill {
 
+        protected Texture2D selectedTile;
+
+        public Skill(Texture2D selectedTile) {
+            this.selectedTile = selectedTile;
+        }
+
         public abstract void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles);
 
         public abstract void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber);
+
+        public virtual void Draw(List<Tile> selectedTiles, SpriteBatch spriteBatch) {
+            selectedTiles.ForEach(x => x.Draw(spriteBatch, selectedTile));
+        }
     }
 
     #region Attacks 
 
     public class Attack : Skill {
+        protected Texture2D cross;
+
+
+        /// <param name="selectedTile">Sword texture</param>
+        /// <param name="cross">Cross texture</param>
+        public Attack(Texture2D selectedTile, Texture2D cross) : base(selectedTile) {
+            this.cross = cross;
+        }
+
         public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
 
             throw new NotImplementedException();
@@ -27,9 +47,18 @@ namespace DagligaHatet {
             Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
             selectedTiles.Clear();
         }
+
+        public override void Draw(List<Tile> selectedTiles, SpriteBatch spriteBatch) {
+            selectedTiles.Where(x => x.Occupied == false).ToList().ForEach(x => x.Draw(spriteBatch, cross));
+            selectedTiles.Where(x => x.Occupied == true).ToList().ForEach(x => x.Draw(spriteBatch, selectedTile));
+        }
     }
 
     public class AttackMelee : Attack {
+        public AttackMelee(Texture2D selectedTile, Texture2D cross) : base(selectedTile, cross) {
+
+        }
+
         public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
             selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) + Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].Range));
 
@@ -38,6 +67,10 @@ namespace DagligaHatet {
     }
 
     public class AttackRangeCross : Attack {
+        public AttackRangeCross(Texture2D selectedTile, Texture2D cross) : base(selectedTile, cross) {
+
+        }
+
         public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
             selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) < playerCharacters[indexNumber].Range &&
                                 x.MapPosition.Y == playerCharacters[indexNumber].MapPosition.Y ||
@@ -49,6 +82,10 @@ namespace DagligaHatet {
     }
 
     public class AttackRangeXCross : Attack {
+        public AttackRangeXCross(Texture2D selectedTile, Texture2D cross) : base(selectedTile, cross) {
+
+        }
+
         public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
             selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) < playerCharacters[indexNumber].Range &&
                                 x.MapPosition.Y == playerCharacters[indexNumber].MapPosition.Y ||
@@ -63,15 +100,45 @@ namespace DagligaHatet {
 
     #region Wizardskills
 
-    public class HealWizardSkill : Skill {
+    public class SkillWizardHeal : Skill {
+
+        public SkillWizardHeal(Texture2D selectedTile) : base(selectedTile) {
+
+        }
+
         public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
-            selectedTiles.AddRange(map.Where(x => x.Occupied == true &&
-            (Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X)
-            + Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].SkillRange)));
+            selectedTiles.AddRange(map.Where(x => x.Occupied == true && 
+            Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) + 
+            Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].SkillRange));
         }
 
         public override void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber) {
+            Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
+            playerCharacters.Where(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).ToList().ForEach(x => x.Health = x.Health + 4);
 
+            Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
+            selectedTiles.Clear();
+        }
+    }
+
+    #endregion
+
+    #region RangerSkill
+
+    public class SkillRangerBomb : Skill {
+        public SkillRangerBomb(Texture2D selectedTile) : base(selectedTile) {
+
+        }
+
+        public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
+            selectedTiles.AddRange(map.Where(x => (x.MapPosition.Y == playerCharacters[indexNumber].MapPosition.Y ||
+                                x.MapPosition.X == playerCharacters[indexNumber].MapPosition.X) &&
+                                (Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) + 
+                                Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) == playerCharacters[indexNumber].Range)));
+        }
+
+        public override void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber) {
+            throw new NotImplementedException();
         }
     }
 

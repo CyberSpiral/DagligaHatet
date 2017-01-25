@@ -79,10 +79,10 @@ namespace DagligaHatet {
             //playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Knight1"), map[0].Position, map[0].MapPosition, "Knight", 3, 3, attackStyle.around, new AttackMelee(), 20, 5));
 
             order.Add("Wizard");
-            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Wizard1"), map[45].Position, map[45].MapPosition, "Wizard", new AttackRangeCross(), 4, 3, new HealWizardSkill(), 100, 4, 10));
+            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Wizard1"), map[45].Position, map[45].MapPosition, "Wizard", new AttackRangeCross(Content.Load<Texture2D>("Sword"),Content.Load<Texture2D>("Cross")), 4, 3, new SkillWizardHeal(Content.Load<Texture2D>("Heal2")), 100, 4, 10));
 
             order.Add("Ranger");
-            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Ranger1"), map[85].Position, map[85].MapPosition, "Ranger", new AttackRangeXCross(), 5, 2, new HealWizardSkill(), 100, 5, 13));
+            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Ranger1"), map[85].Position, map[85].MapPosition, "Ranger", new AttackRangeXCross(Content.Load<Texture2D>("Sword"), Content.Load<Texture2D>("Cross")), 5, 2, new SkillRangerBomb(Content.Load<Texture2D>("Sword")), 100, 5, 13));
 
             // TODO: use this.Content to load your game content here
 
@@ -197,7 +197,7 @@ namespace DagligaHatet {
                         playerCharacters[indexNumber].Skill.PrepareSkill(playerCharacters, indexNumber, map, selectedTiles);
                         phase = states.SkillPhase1;
                     }
-                    else if(phase == states.SkillPhase1) {
+                    else if (phase == states.SkillPhase1) {
                         selectedTiles.Clear();
                         phase = states.ChoosePhase;
                     }
@@ -258,6 +258,9 @@ namespace DagligaHatet {
 
             //spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, null, null, null, null, cam.get_transformation(GraphicsDevice));
             spriteBatch.Begin();
+            for (int i = 0; i < 3; i++) {
+                spriteBatch.Draw(Content.Load<Texture2D>("DSC_0089"), new Vector2(378 * i + 0, 0), Color.White);
+            }
 
             switch (phase) {
                 case states.MovePhase1:
@@ -289,8 +292,10 @@ namespace DagligaHatet {
                 selectedTiles.ForEach(x => x.Draw(spriteBatch, playerCharacters[playerCharacters.FindIndex(y => y.Name == order[orderNumber])].Texture));
             }
             else if (phase == states.AttackPhase1) {
-                selectedTiles.Where(x => x.Occupied == false).ToList().ForEach(x => x.Draw(spriteBatch, Content.Load<Texture2D>("Cross")));
-                selectedTiles.Where(x => x.Occupied == true).ToList().ForEach(x => x.Draw(spriteBatch, Content.Load<Texture2D>("Sword")));
+                playerCharacters[playerCharacters.FindIndex(x => x.Name == order[orderNumber])].Attack.Draw(selectedTiles, spriteBatch);
+            }
+            else if (phase == states.SkillPhase1) {
+                playerCharacters[playerCharacters.FindIndex(x => x.Name == order[orderNumber])].Skill.Draw(selectedTiles, spriteBatch);
             }
 
             spriteBatch.End();

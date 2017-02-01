@@ -258,9 +258,9 @@ namespace DagligaHatet {
 
             //spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, null, null, null, null, cam.get_transformation(GraphicsDevice));
             spriteBatch.Begin();
-            for (int i = 0; i < 3; i++) {
+            /*for (int i = 0; i < 3; i++) {
                 spriteBatch.Draw(Content.Load<Texture2D>("DSC_0089"), new Vector2(378 * i + 0, 0), Color.White);
-            }
+            }*/
 
             switch (phase) {
                 case states.MovePhase1:

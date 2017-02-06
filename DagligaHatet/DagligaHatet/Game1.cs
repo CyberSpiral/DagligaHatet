@@ -72,11 +72,11 @@ namespace DagligaHatet {
                     map.Add(new Tile(new Vector2(x * 40 + 100, y * 40 + 100), new Vector2(x, y)));
                 }
             }
+            
 
 
-
-            //order.Add("Knight");
-            //playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Knight1"), map[0].Position, map[0].MapPosition, "Knight", 3, 3, attackStyle.around, new AttackMelee(), 20, 5));
+            order.Add("Knight");
+            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Knight1"), map[22].Position, map[22].MapPosition, "Knight", new AttackMelee(Content.Load<Texture2D>("Sword"), Content.Load<Texture2D>("Cross")), 4, 3, new KnightSkillWhirlwind(Content.Load<Texture2D>("Heal2")), 100, 4, 10));
 
             order.Add("Wizard");
             playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Wizard1"), map[45].Position, map[45].MapPosition, "Wizard", new AttackRangeCross(Content.Load<Texture2D>("Sword"),Content.Load<Texture2D>("Cross")), 4, 3, new SkillWizardHeal(Content.Load<Texture2D>("Heal2")), 100, 4, 10));
@@ -85,8 +85,7 @@ namespace DagligaHatet {
             playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Ranger1"), map[85].Position, map[85].MapPosition, "Ranger", new AttackRangeXCross(Content.Load<Texture2D>("Sword"), Content.Load<Texture2D>("Cross")), 5, 2, new SkillRangerBomb(Content.Load<Texture2D>("Sword")), 100, 5, 13));
 
             // TODO: use this.Content to load your game content here
-
-
+            
         }
 
 
@@ -257,10 +256,12 @@ namespace DagligaHatet {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             //spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, null, null, null, null, cam.get_transformation(GraphicsDevice));
+
             spriteBatch.Begin();
-            for (int i = 0; i < 3; i++) {
+
+            /*for (int i = 0; i < 3; i++) {
                 spriteBatch.Draw(Content.Load<Texture2D>("DSC_0089"), new Vector2(378 * i + 0, 0), Color.White);
-            }
+            }*/
 
             switch (phase) {
                 case states.MovePhase1:

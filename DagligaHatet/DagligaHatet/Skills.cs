@@ -98,7 +98,7 @@ namespace DagligaHatet {
     }
     #endregion
 
-    #region Wizardskills
+    #region WizardSkills
 
     public class SkillWizardHeal : Skill {
 
@@ -123,7 +123,7 @@ namespace DagligaHatet {
 
     #endregion
 
-    #region RangerSkill
+    #region RangerSkills
 
     public class SkillRangerBomb : Skill {
         public SkillRangerBomb(Texture2D selectedTile) : base(selectedTile) {
@@ -138,7 +138,49 @@ namespace DagligaHatet {
         }
 
         public override void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber) {
-            throw new NotImplementedException();
+            List<Tile> tempList = new List<Tile>();
+            tempList.Add(map.Find(x => x.MapPosition.X == selectedTiles[tileNumber].MapPosition.X && x.MapPosition.Y == selectedTiles[tileNumber].MapPosition.Y));
+            tempList.Add(map.Find(x => x.MapPosition.X == selectedTiles[tileNumber].MapPosition.X+1 && x.MapPosition.Y == selectedTiles[tileNumber].MapPosition.Y));
+            tempList.Add(map.Find(x => x.MapPosition.X == selectedTiles[tileNumber].MapPosition.X-1 && x.MapPosition.Y == selectedTiles[tileNumber].MapPosition.Y));
+            tempList.Add(map.Find(x => x.MapPosition.X == selectedTiles[tileNumber].MapPosition.X && x.MapPosition.Y+1 == selectedTiles[tileNumber].MapPosition.Y));
+            tempList.Add(map.Find(x => x.MapPosition.X == selectedTiles[tileNumber].MapPosition.X && x.MapPosition.Y-1 == selectedTiles[tileNumber].MapPosition.Y));
+
+            foreach (var player in playerCharacters) {
+                if (tempList.Exists(x => x.MapPosition == player.MapPosition)) {
+                    Console.WriteLine(player.Health);
+                    player.Health -= 4;
+                    Console.WriteLine(player.Health);
+                }
+            }
+
+            selectedTiles.Clear();
+        }
+    }
+
+    #endregion
+
+    #region KnightSkills
+   
+    public class KnightSkillWhirlwind : Skill{
+
+        public KnightSkillWhirlwind(Texture2D selectedTile) : base(selectedTile) {}
+
+        public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
+            selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) + Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].SkillRange));
+
+            selectedTiles.RemoveAll(x => x.MapPosition == playerCharacters[indexNumber].MapPosition);
+        }
+
+        public override void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber) {
+            Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
+            playerCharacters.Where(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).ToList().ForEach(x => x.Health = x.Health - playerCharacters[indexNumber].Damage);
+
+            Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
+            selectedTiles.Clear();
+        }
+
+        public override void Draw(List<Tile> selectedTiles, SpriteBatch spriteBatch) {
+            base.Draw(selectedTiles, spriteBatch);
         }
     }
 

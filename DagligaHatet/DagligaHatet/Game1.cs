@@ -23,6 +23,8 @@ namespace DagligaHatet {
         Button moveButton;
         Button attackButton;
         Button skillButton;
+
+        Texture2D move;
         List<Tile> selectedTiles = new List<Tile>();
 
         List<PlayerCharacter> playerCharacters = new List<PlayerCharacter>();
@@ -61,6 +63,7 @@ namespace DagligaHatet {
             moveButton = new DagligaHatet.Button(new Rectangle(30, 30, 100, 60), Content.Load<Texture2D>("Move"));
             attackButton = new Button(new Rectangle(200, 30, 100, 60), Content.Load<Texture2D>("Attack"));
             skillButton = new Button(new Rectangle(400, 30, 100, 60), Content.Load<Texture2D>("Skill"));
+            move = Content.Load<Texture2D>("MoveAni");
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
@@ -72,20 +75,20 @@ namespace DagligaHatet {
                     map.Add(new Tile(new Vector2(x * 40 + 100, y * 40 + 100), new Vector2(x, y)));
                 }
             }
-            
+
 
 
             order.Add("Knight");
-            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Knight1"), map[22].Position, map[22].MapPosition, "Knight", new AttackMelee(Content.Load<Texture2D>("Sword"), Content.Load<Texture2D>("Cross")), 4, 3, new KnightSkillWhirlwind(Content.Load<Texture2D>("Heal2")), 100, 4, 10));
+            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Knight1"), map[22], "Knight", new AttackMelee(Content.Load<Texture2D>("Sword"), Content.Load<Texture2D>("Cross")), 4, 3, new SkillKnightWhirlwind(Content.Load<Texture2D>("Sword")), 3, 4, 10));
 
             order.Add("Wizard");
-            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Wizard1"), map[45].Position, map[45].MapPosition, "Wizard", new AttackRangeCross(Content.Load<Texture2D>("Sword"),Content.Load<Texture2D>("Cross")), 4, 3, new SkillWizardHeal(Content.Load<Texture2D>("Heal2")), 100, 4, 10));
+            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Wizard1"), map[45], "Wizard", new AttackRangeCross(Content.Load<Texture2D>("Sword"), Content.Load<Texture2D>("Cross")), 4, 3, new SkillWizardHeal(Content.Load<Texture2D>("HealAnimation")), 100, 4, 10));
 
             order.Add("Ranger");
-            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Ranger1"), map[85].Position, map[85].MapPosition, "Ranger", new AttackRangeXCross(Content.Load<Texture2D>("Sword"), Content.Load<Texture2D>("Cross")), 5, 2, new SkillRangerBomb(Content.Load<Texture2D>("Sword")), 100, 5, 13));
+            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Ranger1"), map[85], "Ranger", new AttackRangeXCross(Content.Load<Texture2D>("Sword"), Content.Load<Texture2D>("Cross")), 5, 2, new SkillRangerBomb(Content.Load<Texture2D>("Sword")), 100, 5, 13));
 
             // TODO: use this.Content to load your game content here
-            
+
         }
 
 
@@ -170,10 +173,14 @@ namespace DagligaHatet {
                         selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) + Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].MoveSpeed && x.Occupied == false));
 
                         selectedTiles.RemoveAll(x => x.MapPosition == playerCharacters[indexNumber].MapPosition);
+                        selectedTiles.ForEach(x => {
+                            AnimationEngine.AddPermanent("Move", move, x.Position, Vector2.Zero, 0.2f, 2);
+                        });
                         phase = states.MovePhase1;
                     }
                     else if (phase == states.MovePhase1) {
                         selectedTiles.Clear();
+                        AnimationEngine.ClearPermanent("Move");
                         phase = states.ChoosePhase;
                     }
                 }
@@ -186,6 +193,7 @@ namespace DagligaHatet {
                     }
                     else if (phase == states.AttackPhase1) {
                         selectedTiles.Clear();
+                        AnimationEngine.ClearPermanent("selectedTiles");
                         phase = states.ChoosePhase;
                     }
                 }
@@ -194,10 +202,12 @@ namespace DagligaHatet {
                     if (phase == states.ChoosePhase) {
                         selectedTiles.Clear();
                         playerCharacters[indexNumber].Skill.PrepareSkill(playerCharacters, indexNumber, map, selectedTiles);
+                        AnimationEngine.AddPermanent("Whirlwind", Content.Load<Texture2D>("WhirlwindAni"), playerCharacters[indexNumber].Position, new Vector2(80,80), 0.05f, 8);
                         phase = states.SkillPhase1;
                     }
                     else if (phase == states.SkillPhase1) {
                         selectedTiles.Clear();
+                        AnimationEngine.ClearPermanent("selectedTiles");
                         phase = states.ChoosePhase;
                     }
                 }
@@ -216,6 +226,7 @@ namespace DagligaHatet {
                             playerCharacters[indexNumber].Position = map[mapNumber].Position;
                             playerCharacters[indexNumber].MapPosition = map[mapNumber].MapPosition;
                             map[mapNumber].Occupied = true;
+                            AnimationEngine.ClearPermanent("Move");
                             selectedTiles.Clear();
 
                             //Round over/Move over
@@ -223,13 +234,13 @@ namespace DagligaHatet {
                             orderNumber++;
                         }
                         else if (phase == states.AttackPhase1 && selectedTiles[tileNumber].Occupied == true) {
-                            playerCharacters[indexNumber].Attack.InvokeSkill(playerCharacters, indexNumber, map, selectedTiles, tileNumber);
+                            playerCharacters[indexNumber].Attack.InvokeSkill(playerCharacters, indexNumber, map, selectedTiles, tileNumber, spriteBatch);
                             //Round over/Attack over
                             phase = states.ChoosePhase;
                             orderNumber++;
                         }
                         else if (phase == states.SkillPhase1) {
-                            playerCharacters[indexNumber].Skill.InvokeSkill(playerCharacters, indexNumber, map, selectedTiles, tileNumber);
+                            playerCharacters[indexNumber].Skill.InvokeSkill(playerCharacters, indexNumber, map, selectedTiles, tileNumber, spriteBatch);
                             phase = states.ChoosePhase;
                             orderNumber++;
                         }
@@ -239,7 +250,7 @@ namespace DagligaHatet {
 
 
 
-
+            AnimationEngine.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
             // TODO: Add your update logic here
             if (orderNumber >= order.Count) {
                 orderNumber = 0;
@@ -261,7 +272,7 @@ namespace DagligaHatet {
             /*for (int i = 0; i < 3; i++) {
                 spriteBatch.Draw(Content.Load<Texture2D>("DSC_0089"), new Vector2(378 * i + 0, 0), Color.White);
             }*/
-
+            
             switch (phase) {
                 case states.MovePhase1:
                     spriteBatch.Draw(moveButton.Texture, moveButton.Hitbox, Color.White);
@@ -288,16 +299,7 @@ namespace DagligaHatet {
 
             playerCharacters.ForEach(x => x.Draw(spriteBatch));
 
-            if (phase == states.MovePhase1) {
-                selectedTiles.ForEach(x => x.Draw(spriteBatch, playerCharacters[playerCharacters.FindIndex(y => y.Name == order[orderNumber])].Texture));
-            }
-            else if (phase == states.AttackPhase1) {
-                playerCharacters[playerCharacters.FindIndex(x => x.Name == order[orderNumber])].Attack.Draw(selectedTiles, spriteBatch);
-            }
-            else if (phase == states.SkillPhase1) {
-                playerCharacters[playerCharacters.FindIndex(x => x.Name == order[orderNumber])].Skill.Draw(selectedTiles, spriteBatch);
-            }
-
+            AnimationEngine.Draw(spriteBatch);
             spriteBatch.End();
             // TODO: Add your drawing code here
 

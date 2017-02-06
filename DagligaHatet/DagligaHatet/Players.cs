@@ -18,10 +18,10 @@ namespace DagligaHatet {
 
         public string Name { get; }
 
-        public Object(Texture2D tex, Vector2 position, Vector2 mapPosition, string name) {
+        public Object(Texture2D tex, Tile tile, string name) {
             Texture = tex;
-            Position = position;
-            MapPosition = mapPosition;
+            Position = tile.Position;
+            MapPosition = tile.MapPosition;
             Name = name;
         }
 
@@ -56,7 +56,7 @@ namespace DagligaHatet {
         /// <param name="skillRange">Range of skill</param>
         /// <param name="movementSpeed">Movement speed in tiles</param>
         /// <param name="health">Health points</param>
-        public PlayerCharacter(Texture2D tex, Vector2 position, Vector2 mapPosition, string name, Skill attack, int range, int damage, Skill skill, int skillRange, int movementSpeed, int health) : base(tex, position, mapPosition, name) {
+        public PlayerCharacter(Texture2D tex, Tile tile, string name, Skill attack, int range, int damage, Skill skill, int skillRange, int movementSpeed, int health) : base(tex, tile, name) {
             MoveSpeed = movementSpeed;
             Range = range;
             Health = health;

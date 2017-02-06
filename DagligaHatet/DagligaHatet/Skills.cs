@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace DagligaHatet {
 
         public abstract void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles);
 
-        public abstract void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber);
+        public abstract void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber, SpriteBatch spriteBatch);
 
         public virtual void Draw(List<Tile> selectedTiles, SpriteBatch spriteBatch) {
             selectedTiles.ForEach(x => x.Draw(spriteBatch, selectedTile));
@@ -36,21 +37,17 @@ namespace DagligaHatet {
         }
 
         public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
-
-            throw new NotImplementedException();
+            selectedTiles.Where(x => !x.Occupied).ToList().ForEach(x => AnimationEngine.AddPermanent("selectedTiles", cross, x.Position));
+            selectedTiles.Where(x => x.Occupied).ToList().ForEach(x => AnimationEngine.AddPermanent("selectedTiles", selectedTile, x.Position));
         }
 
-        public override void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber) {
+        public override void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber, SpriteBatch spriteBatch) {
             Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
             playerCharacters.Where(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).ToList().ForEach(x => x.Health = x.Health - playerCharacters[indexNumber].Damage);
 
             Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
+            AnimationEngine.ClearPermanent("selectedTiles");
             selectedTiles.Clear();
-        }
-
-        public override void Draw(List<Tile> selectedTiles, SpriteBatch spriteBatch) {
-            selectedTiles.Where(x => x.Occupied == false).ToList().ForEach(x => x.Draw(spriteBatch, cross));
-            selectedTiles.Where(x => x.Occupied == true).ToList().ForEach(x => x.Draw(spriteBatch, selectedTile));
         }
     }
 
@@ -63,6 +60,7 @@ namespace DagligaHatet {
             selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) + Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].Range));
 
             selectedTiles.RemoveAll(x => x.MapPosition == playerCharacters[indexNumber].MapPosition);
+            base.PrepareSkill(playerCharacters, indexNumber, map, selectedTiles);
         }
     }
 
@@ -78,6 +76,7 @@ namespace DagligaHatet {
                                 x.MapPosition.X == playerCharacters[indexNumber].MapPosition.X));
 
             selectedTiles.RemoveAll(x => x.MapPosition == playerCharacters[indexNumber].MapPosition);
+            base.PrepareSkill(playerCharacters, indexNumber, map, selectedTiles);
         }
     }
 
@@ -94,6 +93,7 @@ namespace DagligaHatet {
             selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) == Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) && Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) + Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].Range * 1.2));
 
             selectedTiles.RemoveAll(x => x.MapPosition == playerCharacters[indexNumber].MapPosition);
+            base.PrepareSkill(playerCharacters, indexNumber, map, selectedTiles);
         }
     }
     #endregion
@@ -107,16 +107,19 @@ namespace DagligaHatet {
         }
 
         public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
-            selectedTiles.AddRange(map.Where(x => x.Occupied == true && 
-            Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) + 
+
+            selectedTiles.AddRange(map.Where(x => x.Occupied == true &&
+            Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) +
             Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].SkillRange));
+            selectedTiles.ForEach(x => AnimationEngine.AddPermanent("selectedTiles", selectedTile, x.Position, Vector2.Zero, 0.3f, 2));
         }
 
-        public override void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber) {
+        public override void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber, SpriteBatch spriteBatch) {
             Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
             playerCharacters.Where(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).ToList().ForEach(x => x.Health = x.Health + 4);
 
             Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
+            AnimationEngine.ClearPermanent("selectedTiles");
             selectedTiles.Clear();
         }
     }
@@ -133,17 +136,17 @@ namespace DagligaHatet {
         public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
             selectedTiles.AddRange(map.Where(x => (x.MapPosition.Y == playerCharacters[indexNumber].MapPosition.Y ||
                                 x.MapPosition.X == playerCharacters[indexNumber].MapPosition.X) &&
-                                (Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) + 
+                                (Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) +
                                 Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) == playerCharacters[indexNumber].Range)));
         }
 
-        public override void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber) {
+        public override void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber, SpriteBatch spriteBatch) {
             List<Tile> tempList = new List<Tile>();
             tempList.Add(map.Find(x => x.MapPosition.X == selectedTiles[tileNumber].MapPosition.X && x.MapPosition.Y == selectedTiles[tileNumber].MapPosition.Y));
-            tempList.Add(map.Find(x => x.MapPosition.X == selectedTiles[tileNumber].MapPosition.X+1 && x.MapPosition.Y == selectedTiles[tileNumber].MapPosition.Y));
-            tempList.Add(map.Find(x => x.MapPosition.X == selectedTiles[tileNumber].MapPosition.X-1 && x.MapPosition.Y == selectedTiles[tileNumber].MapPosition.Y));
-            tempList.Add(map.Find(x => x.MapPosition.X == selectedTiles[tileNumber].MapPosition.X && x.MapPosition.Y+1 == selectedTiles[tileNumber].MapPosition.Y));
-            tempList.Add(map.Find(x => x.MapPosition.X == selectedTiles[tileNumber].MapPosition.X && x.MapPosition.Y-1 == selectedTiles[tileNumber].MapPosition.Y));
+            tempList.Add(map.Find(x => x.MapPosition.X == selectedTiles[tileNumber].MapPosition.X + 1 && x.MapPosition.Y == selectedTiles[tileNumber].MapPosition.Y));
+            tempList.Add(map.Find(x => x.MapPosition.X == selectedTiles[tileNumber].MapPosition.X - 1 && x.MapPosition.Y == selectedTiles[tileNumber].MapPosition.Y));
+            tempList.Add(map.Find(x => x.MapPosition.X == selectedTiles[tileNumber].MapPosition.X && x.MapPosition.Y + 1 == selectedTiles[tileNumber].MapPosition.Y));
+            tempList.Add(map.Find(x => x.MapPosition.X == selectedTiles[tileNumber].MapPosition.X && x.MapPosition.Y - 1 == selectedTiles[tileNumber].MapPosition.Y));
 
             foreach (var player in playerCharacters) {
                 if (tempList.Exists(x => x.MapPosition == player.MapPosition)) {
@@ -160,22 +163,30 @@ namespace DagligaHatet {
     #endregion
 
     #region KnightSkills
-   
-    public class KnightSkillWhirlwind : Skill{
 
-        public KnightSkillWhirlwind(Texture2D selectedTile) : base(selectedTile) {}
+    public class SkillKnightWhirlwind : Skill {
+        
+        public SkillKnightWhirlwind(Texture2D selectedTile) : base(selectedTile) { }
 
         public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
             selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) + Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].SkillRange));
 
             selectedTiles.RemoveAll(x => x.MapPosition == playerCharacters[indexNumber].MapPosition);
+            selectedTiles.ForEach(x => AnimationEngine.AddPermanent("selectedTiles", selectedTile, x.Position));
+
         }
 
-        public override void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber) {
-            Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
-            playerCharacters.Where(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).ToList().ForEach(x => x.Health = x.Health - playerCharacters[indexNumber].Damage);
+        public override void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber, SpriteBatch spriteBatch) {
+            foreach (var tile in selectedTiles) {
+                if (playerCharacters.Exists(x => x.MapPosition == tile.MapPosition)) {
 
-            Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
+                    Console.WriteLine(playerCharacters.Find(x => x.MapPosition == tile.MapPosition).Health);
+                    playerCharacters.Where(x => x.MapPosition == tile.MapPosition).ToList().ForEach(x => x.Health = x.Health - playerCharacters[indexNumber].Damage);
+
+                    Console.WriteLine(playerCharacters.Find(x => x.MapPosition == tile.MapPosition).Health);
+                }
+            }
+
             selectedTiles.Clear();
         }
 

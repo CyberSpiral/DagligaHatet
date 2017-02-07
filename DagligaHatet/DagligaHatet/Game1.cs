@@ -79,14 +79,14 @@ namespace DagligaHatet {
 
 
             order.Add("Knight");
-            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Knight1"), map[22], "Knight", new AttackMelee(Content.Load<Texture2D>("Sword"), Content.Load<Texture2D>("Cross")), 4, 3, new SkillKnightWhirlwind(Content.Load<Texture2D>("Sword")), 3, 4, 10));
-
-            order.Add("Wizard");
-            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Wizard1"), map[45], "Wizard", new AttackRangeCross(Content.Load<Texture2D>("Sword"), Content.Load<Texture2D>("Cross")), 4, 3, new SkillWizardHeal(Content.Load<Texture2D>("HealAnimation")), 100, 4, 10));
-
-            order.Add("Ranger");
-            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Ranger1"), map[85], "Ranger", new AttackRangeXCross(Content.Load<Texture2D>("Sword"), Content.Load<Texture2D>("Cross")), 5, 2, new SkillRangerBomb(Content.Load<Texture2D>("Sword")), 100, 5, 13));
-
+            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Knight1"), map[22], "Knight", new AttackMelee(Content.Load<Texture2D>("Sword"), Content.Load<Texture2D>("Cross")), 3 /*Range*/, 3 /*Damage*/, new SkillKnightWhirlwind(Content.Load<Texture2D>("Sword"),Content.Load<Texture2D>("WhirlwindAni")), 2 /*Skill Range*/, 2 /*Skill Damage*/, 3 /*Movement Speedu*/, 10 /*Health*/));
+            map[22].Occupied = true;                                                   
+            order.Add("Wizard");                                                       
+            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Wizard1"), map[45], "Wizard", new AttackRangeCross(Content.Load<Texture2D>("Sword"), Content.Load<Texture2D>("Cross")), 4 /*Range*/, 3 /*Damage*/, new SkillWizardHeal(Content.Load<Texture2D>("HealAnimation")), 100 /*Skill Range*/, 3 /*Skill Damage*/, 4 /*Movement Speed*/, 10 /*Health*/));
+            map[45].Occupied = true;                                                   
+            order.Add("Ranger");                                                       
+            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Ranger1"), map[85], "Ranger", new AttackRangeXCross(Content.Load<Texture2D>("Sword"), Content.Load<Texture2D>("Cross")), 5 /*Range*/, 2 /*Damage*/, new SkillRangerBomb(Content.Load<Texture2D>("Sword"), Content.Load<Texture2D>("Target")), 4 /*Skill Range*/, 3 /*Skill Damage*/, 5 /*Movement Speed*/, 13 /*Health*/));
+            map[85].Occupied = true;
             // TODO: use this.Content to load your game content here
 
         }
@@ -202,7 +202,6 @@ namespace DagligaHatet {
                     if (phase == states.ChoosePhase) {
                         selectedTiles.Clear();
                         playerCharacters[indexNumber].Skill.PrepareSkill(playerCharacters, indexNumber, map, selectedTiles);
-                        AnimationEngine.AddPermanent("Whirlwind", Content.Load<Texture2D>("WhirlwindAni"), playerCharacters[indexNumber].Position, new Vector2(80,80), 0.05f, 8);
                         phase = states.SkillPhase1;
                     }
                     else if (phase == states.SkillPhase1) {
@@ -272,7 +271,7 @@ namespace DagligaHatet {
             /*for (int i = 0; i < 3; i++) {
                 spriteBatch.Draw(Content.Load<Texture2D>("DSC_0089"), new Vector2(378 * i + 0, 0), Color.White);
             }*/
-            
+
             switch (phase) {
                 case states.MovePhase1:
                     spriteBatch.Draw(moveButton.Texture, moveButton.Hitbox, Color.White);

@@ -16,20 +16,16 @@ namespace DagligaHatet {
     //public delegate void ClickedEventHandler(object sender, EventArgs e);
 
 
+
     public class Game1 : Microsoft.Xna.Framework.Game {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        List<Tile> map = new List<Tile>();
         Button moveButton;
         Button attackButton;
         Button skillButton;
+        Button skipButton;
 
         Texture2D move;
-        List<Tile> selectedTiles = new List<Tile>();
-
-        List<PlayerCharacter> playerCharacters = new List<PlayerCharacter>();
-        List<string> order = new List<string>();
-        int orderNumber = 0;
 
         states phase = states.ChoosePhase;
         MouseState oldMouse;
@@ -60,9 +56,16 @@ namespace DagligaHatet {
         /// all of your content.
         /// </summary>
         protected override void LoadContent() {
-            moveButton = new DagligaHatet.Button(new Rectangle(30, 30, 100, 60), Content.Load<Texture2D>("Move"));
+            moveButton = new Button(new Rectangle(30, 30, 100, 60), Content.Load<Texture2D>("Move"));
             attackButton = new Button(new Rectangle(200, 30, 100, 60), Content.Load<Texture2D>("Attack"));
             skillButton = new Button(new Rectangle(400, 30, 100, 60), Content.Load<Texture2D>("Skill"));
+            skipButton = new Button(new Rectangle(600, 30, 100, 60), Content.Load<Texture2D>("Skip"));
+
+            DrawEngine.AddPermanent("moveButton", moveButton.Texture, World.UnTranslateMapPosition(new Vector2(moveButton.Hitbox.X, moveButton.Hitbox.Y)));
+            DrawEngine.AddPermanent("attackButton", attackButton.Texture, World.UnTranslateMapPosition(new Vector2(attackButton.Hitbox.X, attackButton.Hitbox.Y)));
+            DrawEngine.AddPermanent("skillButton", skillButton.Texture, World.UnTranslateMapPosition(new Vector2(skillButton.Hitbox.X, skillButton.Hitbox.Y)));
+            DrawEngine.AddPermanent("skipButton", skipButton.Texture, World.UnTranslateMapPosition(new Vector2(skipButton.Hitbox.X, skipButton.Hitbox.Y)));
+
             move = Content.Load<Texture2D>("MoveAni");
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -70,23 +73,7 @@ namespace DagligaHatet {
             //Clicked += MouseClick;
 
 
-            for (int x = 0; x < 20; x++) {
-                for (int y = 0; y < 16; y++) {
-                    map.Add(new Tile(new Vector2(x * 40 + 100, y * 40 + 100), new Vector2(x, y)));
-                }
-            }
-
-
-
-            order.Add("Knight");
-            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Knight1"), map[22], "Knight", new AttackMelee(Content.Load<Texture2D>("Sword"), Content.Load<Texture2D>("Cross")), 3 /*Range*/, 3 /*Damage*/, new SkillKnightWhirlwind(Content.Load<Texture2D>("Sword"),Content.Load<Texture2D>("WhirlwindAni")), 2 /*Skill Range*/, 2 /*Skill Damage*/, 3 /*Movement Speedu*/, 10 /*Health*/));
-            map[22].Occupied = true;                                                   
-            order.Add("Wizard");                                                       
-            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Wizard1"), map[45], "Wizard", new AttackRangeCross(Content.Load<Texture2D>("Sword"), Content.Load<Texture2D>("Cross")), 4 /*Range*/, 3 /*Damage*/, new SkillWizardHeal(Content.Load<Texture2D>("HealAnimation")), 100 /*Skill Range*/, 3 /*Skill Damage*/, 4 /*Movement Speed*/, 10 /*Health*/));
-            map[45].Occupied = true;                                                   
-            order.Add("Ranger");                                                       
-            playerCharacters.Add(new PlayerCharacter(Content.Load<Texture2D>("Ranger1"), map[85], "Ranger", new AttackRangeXCross(Content.Load<Texture2D>("Sword"), Content.Load<Texture2D>("Cross")), 5 /*Range*/, 2 /*Damage*/, new SkillRangerBomb(Content.Load<Texture2D>("Sword"), Content.Load<Texture2D>("Target")), 4 /*Skill Range*/, 3 /*Skill Damage*/, 5 /*Movement Speed*/, 13 /*Health*/));
-            map[85].Occupied = true;
+            World.Prepare(Content);
             // TODO: use this.Content to load your game content here
 
         }
@@ -105,8 +92,8 @@ namespace DagligaHatet {
             MouseState mus = Mouse.GetState();
             Rectangle musRec = new Rectangle(mus.X, mus.Y, 1, 1);
 
-            if (selectedTiles.Exists(x => x.Collision.Intersects(musRec))) {
-                int tileNumber = selectedTiles.FindIndex(x => x.Collision.Intersects(musRec));
+            if (World.selectedTiles.Exists(x => x.Collision.Intersects(musRec))) {
+                int tileNumber = World.selectedTiles.FindIndex(x => x.Collision.Intersects(musRec));
                 if (phase == states.MovePhase1) {
                     List<List<Vector2>> Path = new List<List<Vector2>>();
 
@@ -115,19 +102,19 @@ namespace DagligaHatet {
                     playerCharacters[indexNumber].Position = map[mapNumber].Position;
                     playerCharacters[indexNumber].MapPosition = map[mapNumber].MapPosition;
                     map[mapNumber].Occupied = true;
-                    selectedTiles.Clear();
+                    World.selectedTiles.Clear();
 
                     //Round over/Move over
                     phase = states.ChoosePhase;
                     orderNumber++;
                 }
-                else if (phase == states.AttackPhase1 && selectedTiles[tileNumber].Occupied == true) {
+                else if (phase == states.AttackPhase1 && World.selectedTiles[tileNumber].Occupied == true) {
                     //Damage
-                    Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
-                    playerCharacters.Where(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).ToList().ForEach(x => x.Health = x.Health - playerCharacters[indexNumber].Damage);
+                    Console.WriteLine(playerCharacters.Find(x => x.MapPosition == World.selectedTiles[tileNumber].MapPosition).Health);
+                    playerCharacters.Where(x => x.MapPosition == World.selectedTiles[tileNumber].MapPosition).ToList().ForEach(x => x.Health = x.Health - playerCharacters[indexNumber].Damage);
 
-                    Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
-                    selectedTiles.Clear();
+                    Console.WriteLine(playerCharacters.Find(x => x.MapPosition == World.selectedTiles[tileNumber].MapPosition).Health);
+                    World.selectedTiles.Clear();
 
 
                     //Round over/Attack over
@@ -164,96 +151,111 @@ namespace DagligaHatet {
                 OnClicked(EventArgs.Empty);
             }*/
 
-            if (playerCharacters.Exists(x => x.Name == order[orderNumber])) {
-                int indexNumber = playerCharacters.FindIndex(x => x.Name == order[orderNumber]);
 
-                if (moveButton.Update(Mouse.GetState(), oldMouse)) {
-                    if (phase == states.ChoosePhase) {
-                        selectedTiles.Clear();
-                        selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) + Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].MoveSpeed && x.Occupied == false));
-
-                        selectedTiles.RemoveAll(x => x.MapPosition == playerCharacters[indexNumber].MapPosition);
-                        selectedTiles.ForEach(x => {
-                            AnimationEngine.AddPermanent("Move", move, x.Position, Vector2.Zero, 0.2f, 2);
-                        });
-                        phase = states.MovePhase1;
-                    }
-                    else if (phase == states.MovePhase1) {
-                        selectedTiles.Clear();
-                        AnimationEngine.ClearPermanent("Move");
-                        phase = states.ChoosePhase;
-                    }
+            PlayerCharacter turnMaster = World.Map.Find(x => x.Inhabited && x.Inhabitant.Name == World.Order[World.OrderNumber]).Inhabitant;
+            #region Players
+            if (moveButton.Update(Mouse.GetState(), oldMouse)) {
+                if (phase == states.ChoosePhase) {
+                    World.SelectedTiles.Clear();
+                    World.SelectedTiles.AddRange(World.Map.Where(x => World.Distance(x.MapPosition, turnMaster.MapPosition) < turnMaster.MoveSpeed && x.Inhabited == false));
+                    World.SelectedTiles.RemoveAll(x => x.MapPosition == turnMaster.MapPosition);
+                    World.SelectedTiles.ForEach(x => {
+                        DrawEngine.AddPermanent("Move", move, x.MapPosition, Vector2.Zero, 0.2f, 2);
+                    });
+                    DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button") && !x.Name.Contains("move")).ToList().ForEach(x => x.Hidden = true);
+                    phase = states.MovePhase1;
                 }
-
-                if (attackButton.Update(Mouse.GetState(), oldMouse)) {
-                    if (phase == states.ChoosePhase) {
-                        selectedTiles.Clear();
-                        playerCharacters[indexNumber].Attack.PrepareSkill(playerCharacters, indexNumber, map, selectedTiles);
-                        phase = states.AttackPhase1;
-                    }
-                    else if (phase == states.AttackPhase1) {
-                        selectedTiles.Clear();
-                        AnimationEngine.ClearPermanent("selectedTiles");
-                        phase = states.ChoosePhase;
-                    }
+                else if (phase == states.MovePhase1) {
+                    World.SelectedTiles.Clear();
+                    DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button")).ToList().ForEach(x => x.Hidden = false);
+                    DrawEngine.ClearPermanent("Move");
+                    phase = states.ChoosePhase;
                 }
+            }
 
-                if (skillButton.Update(Mouse.GetState(), oldMouse)) {
-                    if (phase == states.ChoosePhase) {
-                        selectedTiles.Clear();
-                        playerCharacters[indexNumber].Skill.PrepareSkill(playerCharacters, indexNumber, map, selectedTiles);
-                        phase = states.SkillPhase1;
+            if (attackButton.Update(Mouse.GetState(), oldMouse)) {
+                if (phase == states.ChoosePhase) {
+                    World.SelectedTiles.Clear();
+                    turnMaster.Attack.PrepareSkill(turnMaster, World.Map, World.SelectedTiles);
+                    DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button") && !x.Name.Contains("attack")).ToList().ForEach(x => x.Hidden = true);
+                    phase = states.AttackPhase1;
+                }
+                else if (phase == states.AttackPhase1) {
+                    World.SelectedTiles.Clear();
+                    DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button")).ToList().ForEach(x => x.Hidden = false);
+                    DrawEngine.ClearPermanent("selectedTiles");
+                    phase = states.ChoosePhase;
+                }
+            }
+
+            if (skillButton.Update(Mouse.GetState(), oldMouse)) {
+                if (phase == states.ChoosePhase) {
+                    World.SelectedTiles.Clear();
+                    turnMaster.Skill.PrepareSkill(turnMaster, World.Map, World.SelectedTiles);
+                    DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button") && !x.Name.Contains("skill")).ToList().ForEach(x => x.Hidden = true);
+                    phase = states.SkillPhase1;
+                }
+                else if (phase == states.SkillPhase1) {
+                    World.SelectedTiles.Clear();
+                    DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button")).ToList().ForEach(x => x.Hidden = false);
+                    DrawEngine.ClearPermanent("selectedTiles");
+                    phase = states.ChoosePhase;
+                }
+            }
+            if (skipButton.Update(Mouse.GetState(), oldMouse)) {
+                if (phase == states.ChoosePhase) {
+                    World.SelectedTiles.Clear();
+                    World.OrderNumber++;
+                    phase = states.ChoosePhase;
+                }
+            }
+
+            if (Mouse.GetState().LeftButton == ButtonState.Pressed && oldMouse.LeftButton == ButtonState.Released) {
+                MouseState mus = Mouse.GetState();
+                Rectangle musRec = new Rectangle(mus.X, mus.Y, 1, 1);
+
+                if (World.SelectedTiles.Exists(x => x.Collision.Intersects(musRec))) {
+                    Tile clickedTile= World.SelectedTiles.Find(x => x.Collision.Intersects(musRec));
+                    if (phase == states.MovePhase1) {
+                        List<List<Vector2>> Path = new List<List<Vector2>>();
+                        turnMaster.Inhabited.MoveInhabited(clickedTile);
+                        DrawEngine.ClearPermanent("Move");
+                        DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button")).ToList().ForEach(x => x.Hidden = false);
+                        World.SelectedTiles.Clear();
+
+                        //Round over/Move over
+                        phase = states.ChoosePhase;
+                        World.OrderNumber++;
+                    }
+                    else if (phase == states.AttackPhase1 && clickedTile.Inhabited == true) {
+                        turnMaster.Attack.InvokeSkill(turnMaster,World.Map,World.SelectedTiles,clickedTile);
+                        //Round over/Attack over
+                        phase = states.ChoosePhase;
+                        DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button")).ToList().ForEach(x => x.Hidden = false);
+                        World.OrderNumber++;
                     }
                     else if (phase == states.SkillPhase1) {
-                        selectedTiles.Clear();
-                        AnimationEngine.ClearPermanent("selectedTiles");
+                        turnMaster.Skill.InvokeSkill(turnMaster, World.Map, World.SelectedTiles, clickedTile);
                         phase = states.ChoosePhase;
-                    }
-                }
-
-                if (Mouse.GetState().LeftButton == ButtonState.Pressed && oldMouse.LeftButton == ButtonState.Released) {
-                    MouseState mus = Mouse.GetState();
-                    Rectangle musRec = new Rectangle(mus.X, mus.Y, 1, 1);
-
-                    if (selectedTiles.Exists(x => x.Collision.Intersects(musRec))) {
-                        int tileNumber = selectedTiles.FindIndex(x => x.Collision.Intersects(musRec));
-                        if (phase == states.MovePhase1) {
-                            List<List<Vector2>> Path = new List<List<Vector2>>();
-
-                            map.Find(x => x.MapPosition == playerCharacters[indexNumber].MapPosition).Occupied = false;
-                            int mapNumber = map.FindIndex(x => x.Collision.Intersects(musRec));
-                            playerCharacters[indexNumber].Position = map[mapNumber].Position;
-                            playerCharacters[indexNumber].MapPosition = map[mapNumber].MapPosition;
-                            map[mapNumber].Occupied = true;
-                            AnimationEngine.ClearPermanent("Move");
-                            selectedTiles.Clear();
-
-                            //Round over/Move over
-                            phase = states.ChoosePhase;
-                            orderNumber++;
-                        }
-                        else if (phase == states.AttackPhase1 && selectedTiles[tileNumber].Occupied == true) {
-                            playerCharacters[indexNumber].Attack.InvokeSkill(playerCharacters, indexNumber, map, selectedTiles, tileNumber, spriteBatch);
-                            //Round over/Attack over
-                            phase = states.ChoosePhase;
-                            orderNumber++;
-                        }
-                        else if (phase == states.SkillPhase1) {
-                            playerCharacters[indexNumber].Skill.InvokeSkill(playerCharacters, indexNumber, map, selectedTiles, tileNumber, spriteBatch);
-                            phase = states.ChoosePhase;
-                            orderNumber++;
-                        }
+                        DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button")).ToList().ForEach(x => x.Hidden = false);
+                        World.OrderNumber++;
                     }
                 }
             }
 
+            #endregion
+
+            if (World.OrderNumber >= World.Order.Count) {
+                World.OrderNumber = 0;
+            }
 
 
-            AnimationEngine.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+
+            
+            World.Update(gameTime, oldMouse);
+
+            DrawEngine.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
             // TODO: Add your update logic here
-            if (orderNumber >= order.Count) {
-                orderNumber = 0;
-            }
             oldMouse = Mouse.GetState();
             base.Update(gameTime);
         }
@@ -272,33 +274,11 @@ namespace DagligaHatet {
                 spriteBatch.Draw(Content.Load<Texture2D>("DSC_0089"), new Vector2(378 * i + 0, 0), Color.White);
             }*/
 
-            switch (phase) {
-                case states.MovePhase1:
-                    spriteBatch.Draw(moveButton.Texture, moveButton.Hitbox, Color.White);
-                    break;
-                case states.EnemyPhase:
-                    break;
-                case states.AttackPhase1:
-                    spriteBatch.Draw(attackButton.Texture, attackButton.Hitbox, Color.White);
-                    break;
-                case states.ChoosePhase:
-                    spriteBatch.Draw(moveButton.Texture, moveButton.Hitbox, Color.White);
-                    spriteBatch.Draw(attackButton.Texture, attackButton.Hitbox, Color.White);
-                    spriteBatch.Draw(skillButton.Texture, skillButton.Hitbox, Color.White);
-                    break;
-                case states.SkillPhase1:
-                    spriteBatch.Draw(skillButton.Texture, skillButton.Hitbox, Color.White);
-                    break;
-                default:
-                    break;
-            }
+            World.Map.ForEach(x => x.Draw(spriteBatch, Content.Load<Texture2D>("Bushes and dirt_0")));
+            World.Map.ForEach(x => x.Draw(spriteBatch, Content.Load<Texture2D>("Bushes and dirt_6")));
+            World.Map.Where(x => x.Inhabited).ToList().ForEach(x => x.Inhabitant.Draw(spriteBatch));
 
-            map.ForEach(x => x.Draw(spriteBatch, Content.Load<Texture2D>("Bushes and dirt_0")));
-            map.ForEach(x => x.Draw(spriteBatch, Content.Load<Texture2D>("Bushes and dirt_6")));
-
-            playerCharacters.ForEach(x => x.Draw(spriteBatch));
-
-            AnimationEngine.Draw(spriteBatch);
+            DrawEngine.Draw(spriteBatch);
             spriteBatch.End();
             // TODO: Add your drawing code here
 

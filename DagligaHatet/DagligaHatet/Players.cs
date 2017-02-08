@@ -13,20 +13,18 @@ using Microsoft.Xna.Framework.Media;
 namespace DagligaHatet {
     public class Object {
         public Texture2D Texture { get; }
-        public Vector2 MapPosition { get; set; }
-        public Vector2 Position { get; set; }
+        public Tile Inhabited { get; set; }
+        public Vector2 MapPosition { get { return Inhabited.MapPosition; } }
 
         public string Name { get; }
 
-        public Object(Texture2D tex, Tile tile, string name) {
+        public Object(Texture2D tex, string name) {
             Texture = tex;
-            Position = tile.Position;
-            MapPosition = tile.MapPosition;
             Name = name;
         }
 
         public void Draw(SpriteBatch spriteBatch) {
-            spriteBatch.Draw(Texture, new Vector2(Position.X, Position.Y), Color.White);
+            spriteBatch.Draw(Texture, World.TranslateMapPosition(Inhabited.MapPosition), Color.White);
         }
 
     }
@@ -57,7 +55,7 @@ namespace DagligaHatet {
         /// <param name="skillRange">Range of skill</param>
         /// <param name="movementSpeed">Movement speed in tiles</param>
         /// <param name="health">Health points</param>
-        public PlayerCharacter(Texture2D tex, Tile tile, string name, Skill attack, int range, int damage, Skill skill, int skillRange, int skillDamage, int movementSpeed, int health) : base(tex, tile, name) {
+        public PlayerCharacter(Texture2D tex, string name, Skill attack, int range, int damage, Skill skill, int skillRange, int skillDamage, int movementSpeed, int health) : base(tex, name) {
             MoveSpeed = movementSpeed;
             Range = range;
             Health = health;
@@ -68,6 +66,4 @@ namespace DagligaHatet {
             SkillDamage = skillDamage;
         }
     }
-
-
 }

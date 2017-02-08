@@ -15,13 +15,10 @@ namespace DagligaHatet {
             this.selectedTile = selectedTile;
         }
 
-        public abstract void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles);
+        public abstract void PrepareSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles);
 
-        public abstract void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber, SpriteBatch spriteBatch);
-
-        public virtual void Draw(List<Tile> selectedTiles, SpriteBatch spriteBatch) {
-            selectedTiles.ForEach(x => x.Draw(spriteBatch, selectedTile));
-        }
+        public abstract void InvokeSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles, Tile clickedTile);
+        
     }
 
     #region Attacks 
@@ -36,17 +33,16 @@ namespace DagligaHatet {
             this.cross = cross;
         }
 
-        public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
-            selectedTiles.Where(x => !x.Occupied).ToList().ForEach(x => AnimationEngine.AddPermanent("selectedTiles", cross, x.Position));
-            selectedTiles.Where(x => x.Occupied).ToList().ForEach(x => AnimationEngine.AddPermanent("selectedTiles", selectedTile, x.Position));
+        public override void PrepareSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
+            selectedTiles.Where(x => !x.Inhabited).ToList().ForEach(x => DrawEngine.AddPermanent("selectedTiles", cross, x.MapPosition));
+            selectedTiles.Where(x => x.Inhabited).ToList().ForEach(x => DrawEngine.AddPermanent("selectedTiles", selectedTile, x.MapPosition));
         }
-    
-        public override void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber, SpriteBatch spriteBatch) {
-            Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
-            playerCharacters.Where(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).ToList().ForEach(x => x.Health = x.Health - playerCharacters[indexNumber].Damage);
 
-            Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
-            AnimationEngine.ClearPermanent("selectedTiles");
+        public override void InvokeSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles, Tile clickedTile) {
+            Console.WriteLine(clickedTile.Inhabitant.Health);
+            clickedTile.Inhabitant.Health =- turnMaster.Damage;
+            Console.WriteLine(clickedTile.Inhabitant.Health);
+            DrawEngine.ClearPermanent("selectedTiles");
             selectedTiles.Clear();
         }
     }
@@ -56,11 +52,10 @@ namespace DagligaHatet {
 
         }
 
-        public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
-            selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) + Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].Range));
-
-            selectedTiles.RemoveAll(x => x.MapPosition == playerCharacters[indexNumber].MapPosition);
-            base.PrepareSkill(playerCharacters, indexNumber, map, selectedTiles);
+        public override void PrepareSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
+            selectedTiles.AddRange(map.Where(x => World.Distance(x.MapPosition, turnMaster.MapPosition) < turnMaster.Range));
+            selectedTiles.RemoveAll(x => x.MapPosition == turnMaster.MapPosition);
+            base.PrepareSkill(turnMaster, map, selectedTiles);
         }
     }
 
@@ -69,14 +64,12 @@ namespace DagligaHatet {
 
         }
 
-        public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
-            selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) < playerCharacters[indexNumber].Range &&
-                                x.MapPosition.Y == playerCharacters[indexNumber].MapPosition.Y ||
-                                Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].Range &&
-                                x.MapPosition.X == playerCharacters[indexNumber].MapPosition.X));
+        public override void PrepareSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
+            selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - turnMaster.MapPosition.X) < turnMaster.Range && x.MapPosition.Y == turnMaster.MapPosition.Y ||
+                                Math.Abs(x.MapPosition.Y - turnMaster.MapPosition.Y) < turnMaster.Range && x.MapPosition.X == turnMaster.MapPosition.X));
 
-            selectedTiles.RemoveAll(x => x.MapPosition == playerCharacters[indexNumber].MapPosition);
-            base.PrepareSkill(playerCharacters, indexNumber, map, selectedTiles);
+            selectedTiles.RemoveAll(x => x.MapPosition == turnMaster.MapPosition);
+            base.PrepareSkill(turnMaster, map, selectedTiles);
         }
     }
 
@@ -85,15 +78,16 @@ namespace DagligaHatet {
 
         }
 
-        public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
-            selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) < playerCharacters[indexNumber].Range &&
-                                x.MapPosition.Y == playerCharacters[indexNumber].MapPosition.Y ||
-                                Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].Range &&
-                                x.MapPosition.X == playerCharacters[indexNumber].MapPosition.X));
-            selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) == Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) && Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) + Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].Range * 1.2));
+        public override void PrepareSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
+            selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - turnMaster.MapPosition.X) < turnMaster.Range &&
+                                x.MapPosition.Y == turnMaster.MapPosition.Y ||
+                                Math.Abs(x.MapPosition.Y - turnMaster.MapPosition.Y) < turnMaster.Range &&
+                                x.MapPosition.X == turnMaster.MapPosition.X));
+            selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - turnMaster.MapPosition.X) == Math.Abs(x.MapPosition.Y - turnMaster.MapPosition.Y) &&
+            World.Distance(x.MapPosition,turnMaster.MapPosition) < turnMaster.Range * 1.2));
 
-            selectedTiles.RemoveAll(x => x.MapPosition == playerCharacters[indexNumber].MapPosition);
-            base.PrepareSkill(playerCharacters, indexNumber, map, selectedTiles);
+            selectedTiles.RemoveAll(x => x.MapPosition == turnMaster.MapPosition);
+            base.PrepareSkill(turnMaster, map, selectedTiles);
         }
     }
     #endregion
@@ -106,20 +100,19 @@ namespace DagligaHatet {
 
         }
 
-        public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
+        public override void PrepareSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
 
-            selectedTiles.AddRange(map.Where(x => x.Occupied == true &&
-            Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) +
-            Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].SkillRange));
-            selectedTiles.ForEach(x => AnimationEngine.AddPermanent("selectedTiles", selectedTile, x.Position, Vector2.Zero, 0.3f, 2));
+            selectedTiles.AddRange(map.Where(x => x.Inhabited == true &&
+            World.Distance(x.MapPosition,turnMaster.MapPosition) < turnMaster.SkillRange));
+            selectedTiles.ForEach(x => DrawEngine.AddPermanent("selectedTiles", selectedTile, x.MapPosition, Vector2.Zero, 0.3f, 2));
         }
 
-        public override void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber, SpriteBatch spriteBatch) {
-            Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
-            playerCharacters.Where(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).ToList().ForEach(x => x.Health = x.Health + playerCharacters[indexNumber].SkillDamage);
+        public override void InvokeSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles, Tile clickedTile) {
+            Console.WriteLine(clickedTile.Inhabitant.Health);
+            clickedTile.Inhabitant.Health += turnMaster.SkillDamage;
 
-            Console.WriteLine(playerCharacters.Find(x => x.MapPosition == selectedTiles[tileNumber].MapPosition).Health);
-            AnimationEngine.ClearPermanent("selectedTiles");
+            Console.WriteLine(clickedTile.Inhabitant.Health);
+            DrawEngine.ClearPermanent("selectedTiles");
             selectedTiles.Clear();
         }
     }
@@ -134,32 +127,26 @@ namespace DagligaHatet {
             Target = target;
         }
 
-        public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
-            selectedTiles.AddRange(map.Where(x => (x.MapPosition.Y == playerCharacters[indexNumber].MapPosition.Y ||
-                                x.MapPosition.X == playerCharacters[indexNumber].MapPosition.X) &&
-                                (Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) +
-                                Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) == playerCharacters[indexNumber].Range)));
-            
+        public override void PrepareSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
+            selectedTiles.AddRange(map.Where(x => (x.MapPosition.Y == turnMaster.MapPosition.Y ||
+                                x.MapPosition.X == turnMaster.MapPosition.X) &&
+                                (Math.Abs(x.MapPosition.X - turnMaster.MapPosition.X) +
+                                Math.Abs(x.MapPosition.Y - turnMaster.MapPosition.Y) == turnMaster.Range)));
+
             selectedTiles.ForEach(x => {
-                map.Where(y => Math.Abs(y.MapPosition.X - x.MapPosition.X) + Math.Abs(y.MapPosition.Y - x.MapPosition.Y) < 2).ToList().Where(y => y.MapPosition != x.MapPosition).ToList().ForEach(y => {
-                    AnimationEngine.AddPermanent("selectedTiles", selectedTile, new Vector2(y.Position.X, y.Position.Y));
+                map.Where(y => World.Distance(y.MapPosition, x.MapPosition) < 2).ToList().Where(y => y.MapPosition != x.MapPosition).ToList().ForEach(y => {
+                    DrawEngine.AddPermanent("selectedTiles", selectedTile, y.MapPosition);
                 });
-                AnimationEngine.AddPermanent("selectedTiles", Target, x.Position);
+                DrawEngine.AddPermanent("selectedTiles", Target, x.MapPosition);
             });
         }
 
-        public override void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber, SpriteBatch spriteBatch) {
+        public override void InvokeSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles, Tile clickedTile) {
             List<Tile> tempList = new List<Tile>();
-            tempList.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - selectedTiles[tileNumber].MapPosition.X) + Math.Abs(x.MapPosition.Y - selectedTiles[tileNumber].MapPosition.Y) < 2));
+            tempList.AddRange(map.Where(x => World.Distance(x.MapPosition, clickedTile.MapPosition) < 2));
+            tempList.ForEach(x => { if (x.Inhabited) x.Inhabitant.Health -= turnMaster.SkillDamage; });
 
-            foreach (var player in playerCharacters) {
-                if (tempList.Exists(x => x.MapPosition == player.MapPosition)) {
-                    Console.WriteLine(player.Health);
-                    player.Health -= playerCharacters[indexNumber].SkillDamage;
-                    Console.WriteLine(player.Health);
-                }
-            }
-
+            DrawEngine.ClearPermanent("selectedTiles");
             selectedTiles.Clear();
         }
     }
@@ -172,38 +159,35 @@ namespace DagligaHatet {
         Texture2D whirl;
         public SkillKnightWhirlwind(Texture2D selectedTile, Texture2D Whirlwind) : base(selectedTile) { whirl = Whirlwind; }
 
-        public override void PrepareSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles) {
-            selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - playerCharacters[indexNumber].MapPosition.X) + Math.Abs(x.MapPosition.Y - playerCharacters[indexNumber].MapPosition.Y) < playerCharacters[indexNumber].SkillRange));
+        public override void PrepareSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
+            selectedTiles.AddRange(map.Where(x => World.Distance(x.MapPosition,turnMaster.MapPosition) < turnMaster.SkillRange));
 
-            selectedTiles.RemoveAll(x => x.MapPosition == playerCharacters[indexNumber].MapPosition);
-            selectedTiles.ForEach(x => AnimationEngine.AddPermanent("selectedTiles", selectedTile, x.Position));
+            selectedTiles.RemoveAll(x => x.MapPosition == turnMaster.MapPosition);
+            selectedTiles.ForEach(x => DrawEngine.AddPermanent("selectedTiles", selectedTile, x.MapPosition));
 
         }
 
-        public override void InvokeSkill(List<PlayerCharacter> playerCharacters, int indexNumber, List<Tile> map, List<Tile> selectedTiles, int tileNumber, SpriteBatch spriteBatch) {
-            AnimationEngine.AddQueued("Whirl", whirl, playerCharacters[indexNumber].Position, new Vector2(80, 80), 0.02f, 8, 0.32f, false);
-            foreach (var tile in selectedTiles) {
-                if (playerCharacters.Exists(x => x.MapPosition == tile.MapPosition)) {
-                    Console.WriteLine(playerCharacters.Find(x => x.MapPosition == tile.MapPosition).Health);
-                    playerCharacters.Where(x => x.MapPosition == tile.MapPosition).ToList().ForEach(x => x.Health = x.Health - playerCharacters[indexNumber].SkillDamage);
-                    Console.WriteLine(playerCharacters.Find(x => x.MapPosition == tile.MapPosition).Health);
+        public override void InvokeSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles, Tile clickedTile) {
+            DrawEngine.AddQueued("Whirl", whirl, turnMaster.MapPosition, new Vector2(80, 80), 0.02f, 8, 0.32f, false);
+            selectedTiles.ForEach(x => {
+                if (x.Inhabited) {
+                    Console.WriteLine(x.Inhabitant.Health);
+                    x.Inhabitant.Health -= turnMaster.SkillDamage;
+                    Console.WriteLine(x.Inhabitant.Health);
+                }});
+
+            DrawEngine.AddPause(0.2f);
+            DrawEngine.AddReverseQueued("Whirl", whirl, turnMaster.MapPosition, new Vector2(80, 80), 0.02f, 8, 0.32f, false);
+
+            selectedTiles.ForEach(x => {
+                if (x.Inhabited) {
+                    Console.WriteLine(x.Inhabitant.Health);
+                    x.Inhabitant.Health -= turnMaster.SkillDamage;
+                    Console.WriteLine(x.Inhabitant.Health);
                 }
-            }
-            AnimationEngine.AddPause(0.2f);
-            AnimationEngine.AddReverseQueued("Whirl", whirl, playerCharacters[indexNumber].Position, new Vector2(80, 80), 0.02f, 8, 0.32f, false);
-            foreach (var tile in selectedTiles) {
-                if (playerCharacters.Exists(x => x.MapPosition == tile.MapPosition)) {
-                    Console.WriteLine(playerCharacters.Find(x => x.MapPosition == tile.MapPosition).Health);
-                    playerCharacters.Where(x => x.MapPosition == tile.MapPosition).ToList().ForEach(x => x.Health = x.Health - playerCharacters[indexNumber].SkillDamage);
-                    Console.WriteLine(playerCharacters.Find(x => x.MapPosition == tile.MapPosition).Health);
-                }
-            }
-            AnimationEngine.ClearPermanent("selectedTiles");
+            });
+            DrawEngine.ClearPermanent("selectedTiles");
             selectedTiles.Clear();
-        }
-
-        public override void Draw(List<Tile> selectedTiles, SpriteBatch spriteBatch) {
-            base.Draw(selectedTiles, spriteBatch);
         }
     }
 

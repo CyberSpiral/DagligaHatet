@@ -153,96 +153,150 @@ namespace DagligaHatet {
 
 
             PlayerCharacter turnMaster = World.Map.Find(x => x.Inhabited && x.Inhabitant.Name == World.Order[World.OrderNumber]).Inhabitant;
+            List<PlayerCharacter> allEnemies = new List<PlayerCharacter>();
+            World.Map.Where(x => x.Inhabited && x.Inhabitant.Alignment != turnMaster.Alignment).ToList().ForEach(x => allEnemies.Add(x.Inhabitant));
+
+            if (turnMaster.Alignment == 0) {
             #region Players
-            if (moveButton.Update(Mouse.GetState(), oldMouse)) {
-                if (phase == states.ChoosePhase) {
-                    World.SelectedTiles.Clear();
-                    World.SelectedTiles.AddRange(World.Map.Where(x => World.Distance(x.MapPosition, turnMaster.MapPosition) < turnMaster.MoveSpeed && x.Inhabited == false));
-                    World.SelectedTiles.RemoveAll(x => x.MapPosition == turnMaster.MapPosition);
-                    World.SelectedTiles.ForEach(x => {
-                        DrawEngine.AddPermanent("Move", move, x.MapPosition, Vector2.Zero, 0.2f, 2);
-                    });
-                    DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button") && !x.Name.Contains("move")).ToList().ForEach(x => x.Hidden = true);
-                    phase = states.MovePhase1;
-                }
-                else if (phase == states.MovePhase1) {
-                    World.SelectedTiles.Clear();
-                    DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button")).ToList().ForEach(x => x.Hidden = false);
-                    DrawEngine.ClearPermanent("Move");
-                    phase = states.ChoosePhase;
-                }
-            }
-
-            if (attackButton.Update(Mouse.GetState(), oldMouse)) {
-                if (phase == states.ChoosePhase) {
-                    World.SelectedTiles.Clear();
-                    turnMaster.Attack.PrepareSkill(turnMaster, World.Map, World.SelectedTiles);
-                    DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button") && !x.Name.Contains("attack")).ToList().ForEach(x => x.Hidden = true);
-                    phase = states.AttackPhase1;
-                }
-                else if (phase == states.AttackPhase1) {
-                    World.SelectedTiles.Clear();
-                    DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button")).ToList().ForEach(x => x.Hidden = false);
-                    DrawEngine.ClearPermanent("selectedTiles");
-                    phase = states.ChoosePhase;
-                }
-            }
-
-            if (skillButton.Update(Mouse.GetState(), oldMouse)) {
-                if (phase == states.ChoosePhase) {
-                    World.SelectedTiles.Clear();
-                    turnMaster.Skill.PrepareSkill(turnMaster, World.Map, World.SelectedTiles);
-                    DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button") && !x.Name.Contains("skill")).ToList().ForEach(x => x.Hidden = true);
-                    phase = states.SkillPhase1;
-                }
-                else if (phase == states.SkillPhase1) {
-                    World.SelectedTiles.Clear();
-                    DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button")).ToList().ForEach(x => x.Hidden = false);
-                    DrawEngine.ClearPermanent("selectedTiles");
-                    phase = states.ChoosePhase;
-                }
-            }
-            if (skipButton.Update(Mouse.GetState(), oldMouse)) {
-                if (phase == states.ChoosePhase) {
-                    World.SelectedTiles.Clear();
-                    World.OrderNumber++;
-                    phase = states.ChoosePhase;
-                }
-            }
-
-            if (Mouse.GetState().LeftButton == ButtonState.Pressed && oldMouse.LeftButton == ButtonState.Released) {
-                MouseState mus = Mouse.GetState();
-                Rectangle musRec = new Rectangle(mus.X, mus.Y, 1, 1);
-
-                if (World.SelectedTiles.Exists(x => x.Collision.Intersects(musRec))) {
-                    Tile clickedTile= World.SelectedTiles.Find(x => x.Collision.Intersects(musRec));
-                    if (phase == states.MovePhase1) {
-                        List<List<Vector2>> Path = new List<List<Vector2>>();
-                        turnMaster.Inhabited.MoveInhabited(clickedTile);
-                        DrawEngine.ClearPermanent("Move");
-                        DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button")).ToList().ForEach(x => x.Hidden = false);
+                if (moveButton.Update(Mouse.GetState(), oldMouse)) {
+                    if (phase == states.ChoosePhase) {
                         World.SelectedTiles.Clear();
-
-                        //Round over/Move over
-                        phase = states.ChoosePhase;
-                        World.OrderNumber++;
+                        World.SelectedTiles.AddRange(World.FloodPath(turnMaster.MoveSpeed, turnMaster.Inhabited));
+                        World.SelectedTiles.RemoveAll(x => x.MapPosition == turnMaster.MapPosition);
+                        World.SelectedTiles.RemoveAll(x => x.Inhabited);
+                        World.SelectedTiles.ForEach(x => {
+                            DrawEngine.AddPermanent("Move", move, x.MapPosition, Vector2.Zero, 0.2f, 2);
+                        });
+                        DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button") && !x.Name.Contains("move")).ToList().ForEach(x => x.Hidden = true);
+                        phase = states.MovePhase1;
                     }
-                    else if (phase == states.AttackPhase1 && clickedTile.Inhabited == true) {
-                        turnMaster.Attack.InvokeSkill(turnMaster,World.Map,World.SelectedTiles,clickedTile);
-                        //Round over/Attack over
-                        phase = states.ChoosePhase;
+                    else if (phase == states.MovePhase1) {
+                        World.SelectedTiles.Clear();
                         DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button")).ToList().ForEach(x => x.Hidden = false);
-                        World.OrderNumber++;
+                        DrawEngine.ClearPermanent("Move");
+                        phase = states.ChoosePhase;
+                    }
+                }
+
+                if (attackButton.Update(Mouse.GetState(), oldMouse)) {
+                    if (phase == states.ChoosePhase) {
+                        World.SelectedTiles.Clear();
+                        turnMaster.Attack.PrepareSkill(turnMaster, World.Map, World.SelectedTiles);
+                        DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button") && !x.Name.Contains("attack")).ToList().ForEach(x => x.Hidden = true);
+                        phase = states.AttackPhase1;
+                    }
+                    else if (phase == states.AttackPhase1) {
+                        World.SelectedTiles.Clear();
+                        DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button")).ToList().ForEach(x => x.Hidden = false);
+                        DrawEngine.ClearPermanent("selectedTiles");
+                        phase = states.ChoosePhase;
+                    }
+                }
+
+                if (skillButton.Update(Mouse.GetState(), oldMouse)) {
+                    if (phase == states.ChoosePhase) {
+                        World.SelectedTiles.Clear();
+                        turnMaster.Skill.PrepareSkill(turnMaster, World.Map, World.SelectedTiles);
+                        DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button") && !x.Name.Contains("skill")).ToList().ForEach(x => x.Hidden = true);
+                        phase = states.SkillPhase1;
                     }
                     else if (phase == states.SkillPhase1) {
-                        turnMaster.Skill.InvokeSkill(turnMaster, World.Map, World.SelectedTiles, clickedTile);
-                        phase = states.ChoosePhase;
+                        World.SelectedTiles.Clear();
                         DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button")).ToList().ForEach(x => x.Hidden = false);
-                        World.OrderNumber++;
+                        DrawEngine.ClearPermanent("selectedTiles");
+                        phase = states.ChoosePhase;
                     }
                 }
-            }
+                if (skipButton.Update(Mouse.GetState(), oldMouse)) {
+                    if (phase == states.ChoosePhase) {
+                        World.SelectedTiles.Clear();
+                        World.OrderNumber++;
+                        phase = states.ChoosePhase;
+                    }
+                }
 
+                if (Mouse.GetState().LeftButton == ButtonState.Pressed && oldMouse.LeftButton == ButtonState.Released) {
+                    MouseState mus = Mouse.GetState();
+                    Rectangle musRec = new Rectangle(mus.X, mus.Y, 1, 1);
+
+                    if (World.SelectedTiles.Exists(x => x.Collision.Intersects(musRec))) {
+                        Tile clickedTile = World.SelectedTiles.Find(x => x.Collision.Intersects(musRec));
+                        if (phase == states.MovePhase1) {
+                            turnMaster.Inhabited.MoveInhabited(clickedTile);
+                            DrawEngine.ClearPermanent("Move");
+                            DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button")).ToList().ForEach(x => x.Hidden = false);
+                            World.SelectedTiles.Clear();
+
+                            //Round over/Move over
+                            phase = states.ChoosePhase;
+                            World.OrderNumber++;
+                        }
+                        else if (phase == states.AttackPhase1 && clickedTile.Inhabited == true) {
+                            turnMaster.Attack.InvokeSkill(turnMaster, World.Map, World.SelectedTiles, clickedTile);
+                            //Round over/Attack over
+                            phase = states.ChoosePhase;
+                            DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button")).ToList().ForEach(x => x.Hidden = false);
+                            World.OrderNumber++;
+                        }
+                        else if (phase == states.SkillPhase1) {
+                            turnMaster.Skill.InvokeSkill(turnMaster, World.Map, World.SelectedTiles, clickedTile);
+                            phase = states.ChoosePhase;
+                            DrawEngine.PermanentAnimations.Where(x => x.Name.Contains("Button")).ToList().ForEach(x => x.Hidden = false);
+                            World.OrderNumber++;
+                        }
+                    }
+                }
+
+            }
+            #endregion
+            #region Emenies
+            else {
+                while (true) {
+                    if (turnMaster.Health > (turnMaster.MaxHealth / 4)) {
+                        turnMaster.Attack.PrepareSkill(turnMaster, World.Map, World.SelectedTiles);
+                        Tuple<PlayerCharacter, bool> toHit = turnMaster.Attack.WouldHit(turnMaster, World.Map, World.SelectedTiles);
+                        if (toHit.Item2) {
+                            turnMaster.Attack.InvokeSkill(turnMaster, World.Map, World.SelectedTiles, toHit.Item1.Inhabited);
+                        }
+                        DrawEngine.ClearPermanent("selectedTiles");
+                        World.SelectedTiles.Clear();
+                        break;
+                    }
+                    else if (turnMaster.Health < (turnMaster.MaxHealth / 4)) {
+                        List<int> distances = new List<int>();
+                        bool scared = false;
+                        allEnemies.ForEach(x => {
+                            x.Attack.PrepareSkill(x, World.Map, World.SelectedTiles);
+                            if (x.Attack.WouldHit(x, World.Map, World.SelectedTiles).Item1 == turnMaster) {
+                                scared = true;
+                            }
+                            DrawEngine.ClearPermanent("selectedTiles");
+                            World.SelectedTiles.Clear();
+                        });
+                        if (scared) {
+                            while (scared) {
+                                World.SelectedTiles.AddRange(World.FloodPath(turnMaster.MoveSpeed, turnMaster.Inhabited));
+                                World.SelectedTiles.RemoveAll(x => x.MapPosition == turnMaster.MapPosition);
+                                World.SelectedTiles.RemoveAll(x => x.Inhabited);
+                                Random r = new Random();
+
+                                scared = false;
+                                turnMaster.Inhabited.MoveInhabited(World.SelectedTiles[r.Next(World.SelectedTiles.Count)]); allEnemies.ForEach(x => {
+                                    x.Attack.PrepareSkill(x, World.Map, World.SelectedTiles);
+                                    if (x.Attack.WouldHit(x, World.Map, World.SelectedTiles).Item1 == turnMaster) {
+                                        scared = true;
+                                    }
+                                    DrawEngine.ClearPermanent("selectedTiles");
+                                    World.SelectedTiles.Clear();
+                                });
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                }
+                World.OrderNumber++;
+            }
             #endregion
 
             if (World.OrderNumber >= World.Order.Count) {
@@ -251,8 +305,7 @@ namespace DagligaHatet {
 
 
 
-            
-            World.Update(gameTime, oldMouse);
+
 
             DrawEngine.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
             // TODO: Add your update logic here
@@ -276,7 +329,6 @@ namespace DagligaHatet {
 
             World.Map.ForEach(x => x.Draw(spriteBatch, Content.Load<Texture2D>("Bushes and dirt_0")));
             World.Map.ForEach(x => x.Draw(spriteBatch, Content.Load<Texture2D>("Bushes and dirt_6")));
-            World.Map.Where(x => x.Inhabited).ToList().ForEach(x => x.Inhabitant.Draw(spriteBatch));
 
             DrawEngine.Draw(spriteBatch);
             spriteBatch.End();

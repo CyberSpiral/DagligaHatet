@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework.Media;
 
 namespace DagligaHatet {
     static class DrawEngine {
-        public static List<AnimationClassQueued> QueuedAnimations { get; } = new List<AnimationClassQueued>();
+        public static List<AnimationClassQueued> QueuedAnimations { get; set; } = new List<AnimationClassQueued>();
         public static List<AnimationClass> PermanentAnimations { get; } = new List<AnimationClass>();
 
         static public void Update(float elapsed) {
@@ -46,12 +46,17 @@ namespace DagligaHatet {
 
         static public void Draw(SpriteBatch spriteBatch) {
             PermanentAnimations.Where(x => x.Animated).ToList().Where(x => !x.Hidden).ToList().ForEach(x => {
-                int FrameWidth = x.Texture.Width / x.TotalFrames;
-                Rectangle sourcerect = new Rectangle(FrameWidth * x.Frame, 0,
-                    FrameWidth, x.Texture.Height);
-                spriteBatch.Draw(x.Texture, x.Position, sourcerect, Color.White,
-                    0, x.Origin, 1, SpriteEffects.None, 0);
-
+                if (!QueuedAnimations.Exists(y => y.Name == x.Name)) {
+                    int FrameWidth = x.Texture.Width / x.TotalFrames;
+                    Rectangle sourcerect = new Rectangle(FrameWidth * x.Frame, 0,
+                        FrameWidth, x.Texture.Height);
+                    spriteBatch.Draw(x.Texture, x.Position, sourcerect, Color.White,
+                        0, x.Origin, 1, SpriteEffects.None, 0);
+                }
+            });
+            PermanentAnimations.Where(x => !x.Animated).ToList().Where(x => !x.Hidden).ToList().ForEach(x => { if(!QueuedAnimations.Exists(y => y.Name == x.Name)){
+                    spriteBatch.Draw(x.Texture, x.Position, Color.White);
+                }
             });
             QueuedAnimations.OrderBy(x => x.Priority).Where(x => x.Priority == QueuedAnimations[0].Priority).Where(x => !x.Hidden)
                 .Where(x => x.Animated).Where(x => x.Name != "Pause").ToList().ForEach(x => {
@@ -73,7 +78,6 @@ namespace DagligaHatet {
                 });
             QueuedAnimations.OrderBy(x => x.Priority).Where(x => x.Priority == QueuedAnimations[0].Priority).ToList().Where(x => !x.Animated).ToList().Where(x => x.Name != "Pause").ToList()
                 .Where(x => !x.Hidden).ToList().ForEach(x => spriteBatch.Draw(x.Texture, x.Position, Color.White));
-            PermanentAnimations.Where(x => !x.Animated).ToList().Where(x => !x.Hidden).ToList().ForEach(x => spriteBatch.Draw(x.Texture, x.Position, Color.White));
         }
 
         static public void AddPermanent(string name, Texture2D texture, Vector2 mapPosition) {
@@ -88,27 +92,27 @@ namespace DagligaHatet {
             }
         }
         static public void AddQueued(string name, Texture2D texture, Vector2 mapPosition, Vector2 origin, float expirationDate, bool asPrevious) {
-            QueuedAnimations.OrderBy(x => x.Priority);
+            QueuedAnimations = QueuedAnimations.OrderBy(x => x.Priority).ToList();
             QueuedAnimations.Add(new AnimationClassQueued(name, texture, World.TranslateMapPosition(mapPosition), origin, expirationDate, asPrevious ? (QueuedAnimations.Count == 0 ? 0 : QueuedAnimations.Last().Priority) : (QueuedAnimations.Count == 0 ? 0 : QueuedAnimations.OrderBy(x => x.Priority).Last().Priority + 1)));
         }
         static public void AddQueued(string name, Texture2D texture, Vector2 mapPosition, Vector2 origin, float timePerFrame, int totalFrames, float expirationDate, bool asPrevious) {
-            QueuedAnimations.OrderBy(x => x.Priority);
+            QueuedAnimations = QueuedAnimations.OrderBy(x => x.Priority).ToList();
             QueuedAnimations.Add(new AnimationClassQueued(name, texture, World.TranslateMapPosition(mapPosition), origin, timePerFrame, totalFrames, expirationDate, asPrevious ? (QueuedAnimations.Count == 0 ? 0 : QueuedAnimations.Last().Priority) : (QueuedAnimations.Count == 0 ? 0 : QueuedAnimations.Last().Priority + 1), false));
         }
         static public void AddReverseQueued(string name, Texture2D texture, Vector2 mapPosition, Vector2 origin, float timePerFrame, int totalFrames, float expirationDate, bool asPrevious) {
-            QueuedAnimations.OrderBy(x => x.Priority);
+            QueuedAnimations = QueuedAnimations.OrderBy(x => x.Priority).ToList();
             QueuedAnimations.Add(new AnimationClassQueued(name, texture, World.TranslateMapPosition(mapPosition), origin, timePerFrame, totalFrames, expirationDate, asPrevious ? (QueuedAnimations.Count == 0 ? 0 : QueuedAnimations.Last().Priority) : (QueuedAnimations.Count == 0 ? 0 : QueuedAnimations.Last().Priority + 1), true));
         }
         static public void AddQueued(string name, Texture2D texture, Vector2 mapPosition, Vector2 origin, float expirationDate, bool asPrevious, Vector2 goal) {
-            QueuedAnimations.OrderBy(x => x.Priority);
-            QueuedAnimations.Add(new AnimationClassQueued(name, texture, World.TranslateMapPosition(mapPosition), origin, expirationDate, asPrevious ? (QueuedAnimations.Count == 0 ? 0 : QueuedAnimations.OrderBy(x => x.Priority).Last().Priority) : (QueuedAnimations.Count == 0 ? 0 : QueuedAnimations.OrderBy(x => x.Priority).Last().Priority + 1), goal));
+            QueuedAnimations = QueuedAnimations.OrderBy(x => x.Priority).ToList();
+            QueuedAnimations.Add(new AnimationClassQueued(name, texture, World.TranslateMapPosition(mapPosition), origin, expirationDate, asPrevious ? (QueuedAnimations.Count == 0 ? 0 : QueuedAnimations.OrderBy(x => x.Priority).Last().Priority) : (QueuedAnimations.Count == 0 ? 0 : QueuedAnimations.OrderBy(x => x.Priority).Last().Priority + 1), World.TranslateMapPosition(goal)));
         }
         static public void AddQueued(string name, Texture2D texture, Vector2 mapPosition, Vector2 origin, float timePerFrame, int totalFrames, float expirationDate, bool asPrevious, Vector2 goal) {
-            QueuedAnimations.OrderBy(x => x.Priority);
-            QueuedAnimations.Add(new AnimationClassQueued(name, texture, World.TranslateMapPosition(mapPosition), origin, timePerFrame, totalFrames, expirationDate, asPrevious ? (QueuedAnimations.Count == 0 ? 0 : QueuedAnimations.OrderBy(x => x.Priority).Last().Priority) : (QueuedAnimations.Count == 0 ? 0 : QueuedAnimations.OrderBy(x => x.Priority).Last().Priority + 1), goal));
+            QueuedAnimations = QueuedAnimations.OrderBy(x => x.Priority).ToList();
+            QueuedAnimations.Add(new AnimationClassQueued(name, texture, World.TranslateMapPosition(mapPosition), origin, timePerFrame, totalFrames, expirationDate, asPrevious ? (QueuedAnimations.Count == 0 ? 0 : QueuedAnimations.OrderBy(x => x.Priority).Last().Priority) : (QueuedAnimations.Count == 0 ? 0 : QueuedAnimations.OrderBy(x => x.Priority).Last().Priority + 1), World.TranslateMapPosition(goal)));
         }
         static public void AddPause(float expirationDate) {
-            QueuedAnimations.OrderBy(x => x.Priority);
+            QueuedAnimations = QueuedAnimations.OrderBy(x => x.Priority).ToList();
             QueuedAnimations.Add(new AnimationClassQueued(expirationDate, QueuedAnimations.Count == 0 ? 0 : QueuedAnimations.OrderBy(x => x.Priority).Last().Priority + 1));
         }
 
@@ -134,7 +138,7 @@ namespace DagligaHatet {
         public string Name { get; }
         public Texture2D Texture { get; }
         public Rectangle TextureRectangle { get; }
-        public Vector2 Position { get; }
+        public Vector2 Position { get; set; }
         public Vector2 Origin { get; }
 
         public AnimationClass(string name, Texture2D texture, Vector2 position) {

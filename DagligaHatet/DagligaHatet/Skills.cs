@@ -40,10 +40,24 @@ namespace DagligaHatet {
 
         public override void InvokeSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles, Tile clickedTile) {
             Console.WriteLine(clickedTile.Inhabitant.Health);
-            clickedTile.Inhabitant.Health =- turnMaster.Damage;
+            clickedTile.Inhabitant.Health -= turnMaster.Damage;
             Console.WriteLine(clickedTile.Inhabitant.Health);
             DrawEngine.ClearPermanent("selectedTiles");
             selectedTiles.Clear();
+        }
+        
+        public Tuple<PlayerCharacter,bool> WouldHit(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
+            if (selectedTiles.Exists(x => x.Inhabited && x.Inhabitant.Alignment != turnMaster.Alignment)) {
+                List<PlayerCharacter> potentialTarget = new List<PlayerCharacter>();
+                selectedTiles.ForEach(x => {
+                    if (x.Inhabited) {
+                        potentialTarget.Add(x.Inhabitant);
+                    }
+                });
+                potentialTarget = potentialTarget.OrderBy(x => x.Health).ToList();
+                return new Tuple<PlayerCharacter, bool>(potentialTarget.Last(), true);
+            }
+            return new Tuple<PlayerCharacter, bool>(null, false);
         }
     }
 

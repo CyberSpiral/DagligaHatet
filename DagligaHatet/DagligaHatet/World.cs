@@ -202,6 +202,14 @@ namespace DagligaHatet {
             Vector2 goal = new Vector2(translated.X + 10, translated.Y - 20);
             DrawEngine.AddDamageReport(string.Format("-{0}", damage), Color.Red, UnTranslateMapPosition(origin), 1f, false, UnTranslateMapPosition(goal));
         }
+        public static void DoHealing(int heal, PlayerCharacter turnMaster, PlayerCharacter reciver) {
+            reciver.Health += heal;
+            Console.WriteLine("The {0} heals {1} for {2}, their health is now {3}", turnMaster.Name, heal, reciver.Name, reciver.Health);
+            Vector2 translated = TranslateMapPosition(reciver.MapPosition);
+            Vector2 origin = new Vector2(translated.X + 10, translated.Y + 10);
+            Vector2 goal = new Vector2(translated.X + 10, translated.Y - 20);
+            DrawEngine.AddDamageReport(string.Format("+{0}", heal), Color.ForestGreen, UnTranslateMapPosition(origin), 1f, false, UnTranslateMapPosition(goal));
+        }
 
     }
     public class Flood {

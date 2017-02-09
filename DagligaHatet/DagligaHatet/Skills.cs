@@ -120,10 +120,7 @@ namespace DagligaHatet {
         }
 
         public override void InvokeSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles, Tile clickedTile) {
-            Console.WriteLine(clickedTile.Inhabitant.Health);
-            clickedTile.Inhabitant.Health += turnMaster.SkillDamage;
-
-            Console.WriteLine(clickedTile.Inhabitant.Health);
+            World.DoHealing(turnMaster.SkillDamage, turnMaster, clickedTile.Inhabitant);
             DrawEngine.ClearPermanent("selectedTiles");
             selectedTiles.Clear();
         }
@@ -156,7 +153,7 @@ namespace DagligaHatet {
         public override void InvokeSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles, Tile clickedTile) {
             List<Tile> tempList = new List<Tile>();
             tempList.AddRange(map.Where(x => World.Distance(x.MapPosition, clickedTile.MapPosition) < 2));
-            tempList.ForEach(x => { if (x.Inhabited) x.Inhabitant.Health -= turnMaster.SkillDamage; });
+            tempList.ForEach(x => { if (x.Inhabited) World.DoDamage(turnMaster.Damage, turnMaster, x.Inhabitant); });
 
             DrawEngine.ClearPermanent("selectedTiles");
             selectedTiles.Clear();
@@ -183,9 +180,7 @@ namespace DagligaHatet {
             DrawEngine.AddQueued("Whirl", whirl, turnMaster.MapPosition, new Vector2(80, 80), 0.02f, 8, 0.32f, false);
             selectedTiles.ForEach(x => {
                 if (x.Inhabited) {
-                    Console.WriteLine(x.Inhabitant.Health);
-                    x.Inhabitant.Health -= turnMaster.SkillDamage;
-                    Console.WriteLine(x.Inhabitant.Health);
+                    World.DoDamage(turnMaster.Damage, turnMaster, x.Inhabitant);
                 }
             });
 
@@ -194,9 +189,7 @@ namespace DagligaHatet {
 
             selectedTiles.ForEach(x => {
                 if (x.Inhabited) {
-                    Console.WriteLine(x.Inhabitant.Health);
-                    x.Inhabitant.Health -= turnMaster.SkillDamage;
-                    Console.WriteLine(x.Inhabitant.Health);
+                    World.DoDamage(turnMaster.Damage, turnMaster, x.Inhabitant);
                 }
             });
             DrawEngine.ClearPermanent("selectedTiles");

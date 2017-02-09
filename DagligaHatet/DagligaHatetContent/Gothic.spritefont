@@ -11,7 +11,7 @@ with.
     <!--
     Modify this string to change the font that will be imported.
     -->
-    <FontName>GothicI</FontName>
+    <FontName>Forte</FontName>
 
     <!--
     Size is a float value, meas ured in points. Modify this value to change

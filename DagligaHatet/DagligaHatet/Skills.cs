@@ -18,7 +18,7 @@ namespace DagligaHatet {
         public abstract void PrepareSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles);
 
         public abstract void InvokeSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles, Tile clickedTile);
-        
+
     }
 
     #region Attacks 
@@ -34,23 +34,21 @@ namespace DagligaHatet {
         }
 
         public override void PrepareSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
-            selectedTiles.Where(x => !x.Inhabited).ToList().ForEach(x => DrawEngine.AddPermanent("selectedTiles", cross, x.MapPosition));
-            selectedTiles.Where(x => x.Inhabited).ToList().ForEach(x => DrawEngine.AddPermanent("selectedTiles", selectedTile, x.MapPosition));
+            selectedTiles.Where(x => !x.Inhabited).ToList().ForEach(x => DrawEngine.AddPermanent("selectedTiles", cross, x.MapPosition, 0));
+            selectedTiles.Where(x => x.Inhabited).ToList().ForEach(x => DrawEngine.AddPermanent("selectedTiles", selectedTile, x.MapPosition, 0));
         }
 
         public override void InvokeSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles, Tile clickedTile) {
-            Console.WriteLine(clickedTile.Inhabitant.Health);
-            clickedTile.Inhabitant.Health -= turnMaster.Damage;
-            Console.WriteLine(clickedTile.Inhabitant.Health);
+            World.DoDamage(turnMaster.Damage, turnMaster, clickedTile.Inhabitant);
             DrawEngine.ClearPermanent("selectedTiles");
             selectedTiles.Clear();
         }
-        
-        public Tuple<PlayerCharacter,bool> WouldHit(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
+
+        public Tuple<PlayerCharacter, bool> WouldHit(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
             if (selectedTiles.Exists(x => x.Inhabited && x.Inhabitant.Alignment != turnMaster.Alignment)) {
                 List<PlayerCharacter> potentialTarget = new List<PlayerCharacter>();
                 selectedTiles.ForEach(x => {
-                    if (x.Inhabited) {
+                    if (x.Inhabited && x.Inhabitant.Alignment != turnMaster.Alignment) {
                         potentialTarget.Add(x.Inhabitant);
                     }
                 });
@@ -67,7 +65,7 @@ namespace DagligaHatet {
         }
 
         public override void PrepareSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
-            selectedTiles.AddRange(map.Where(x => World.Distance(x.MapPosition, turnMaster.MapPosition) < turnMaster.Range));
+            selectedTiles.AddRange(map.Where(x => (World.Distance(x.MapPosition, turnMaster.MapPosition)) < turnMaster.Range));
             selectedTiles.RemoveAll(x => x.MapPosition == turnMaster.MapPosition);
             base.PrepareSkill(turnMaster, map, selectedTiles);
         }
@@ -98,7 +96,7 @@ namespace DagligaHatet {
                                 Math.Abs(x.MapPosition.Y - turnMaster.MapPosition.Y) < turnMaster.Range &&
                                 x.MapPosition.X == turnMaster.MapPosition.X));
             selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapPosition.X - turnMaster.MapPosition.X) == Math.Abs(x.MapPosition.Y - turnMaster.MapPosition.Y) &&
-            World.Distance(x.MapPosition,turnMaster.MapPosition) < turnMaster.Range * 1.2));
+            World.Distance(x.MapPosition, turnMaster.MapPosition) < turnMaster.Range * 1.2));
 
             selectedTiles.RemoveAll(x => x.MapPosition == turnMaster.MapPosition);
             base.PrepareSkill(turnMaster, map, selectedTiles);
@@ -117,8 +115,8 @@ namespace DagligaHatet {
         public override void PrepareSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
 
             selectedTiles.AddRange(map.Where(x => x.Inhabited == true &&
-            World.Distance(x.MapPosition,turnMaster.MapPosition) < turnMaster.SkillRange));
-            selectedTiles.ForEach(x => DrawEngine.AddPermanent("selectedTiles", selectedTile, x.MapPosition, Vector2.Zero, 0.3f, 2));
+            World.Distance(x.MapPosition, turnMaster.MapPosition) < turnMaster.SkillRange));
+            selectedTiles.ForEach(x => DrawEngine.AddPermanent("selectedTiles", selectedTile, x.MapPosition, Vector2.Zero, 0.3f, 2, 0));
         }
 
         public override void InvokeSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles, Tile clickedTile) {
@@ -149,9 +147,9 @@ namespace DagligaHatet {
 
             selectedTiles.ForEach(x => {
                 map.Where(y => World.Distance(y.MapPosition, x.MapPosition) < 2).ToList().Where(y => y.MapPosition != x.MapPosition).ToList().ForEach(y => {
-                    DrawEngine.AddPermanent("selectedTiles", selectedTile, y.MapPosition);
+                    DrawEngine.AddPermanent("selectedTiles", selectedTile, y.MapPosition, 0);
                 });
-                DrawEngine.AddPermanent("selectedTiles", Target, x.MapPosition);
+                DrawEngine.AddPermanent("selectedTiles", Target, x.MapPosition, 0);
             });
         }
 
@@ -174,10 +172,10 @@ namespace DagligaHatet {
         public SkillKnightWhirlwind(Texture2D selectedTile, Texture2D Whirlwind) : base(selectedTile) { whirl = Whirlwind; }
 
         public override void PrepareSkill(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
-            selectedTiles.AddRange(map.Where(x => World.Distance(x.MapPosition,turnMaster.MapPosition) < turnMaster.SkillRange));
+            selectedTiles.AddRange(map.Where(x => World.Distance(x.MapPosition, turnMaster.MapPosition) < turnMaster.SkillRange));
 
             selectedTiles.RemoveAll(x => x.MapPosition == turnMaster.MapPosition);
-            selectedTiles.ForEach(x => DrawEngine.AddPermanent("selectedTiles", selectedTile, x.MapPosition));
+            selectedTiles.ForEach(x => DrawEngine.AddPermanent("selectedTiles", selectedTile, x.MapPosition, 0));
 
         }
 
@@ -188,7 +186,8 @@ namespace DagligaHatet {
                     Console.WriteLine(x.Inhabitant.Health);
                     x.Inhabitant.Health -= turnMaster.SkillDamage;
                     Console.WriteLine(x.Inhabitant.Health);
-                }});
+                }
+            });
 
             DrawEngine.AddPause(0.2f);
             DrawEngine.AddReverseQueued("Whirl", whirl, turnMaster.MapPosition, new Vector2(80, 80), 0.02f, 8, 0.32f, false);

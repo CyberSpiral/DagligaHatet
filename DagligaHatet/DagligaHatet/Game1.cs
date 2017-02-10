@@ -27,6 +27,12 @@ namespace DagligaHatet {
         bool pause;
         public static Texture2D Cross;
 
+        //Enemies
+        Tile target;
+        List<PlayerCharacter> listCanHitMe = new List<PlayerCharacter>();
+        List<Tile> canMoveTo = new List<Tile>();
+        List<PlayerCharacter> listCanHit = new List<PlayerCharacter>();
+
         Texture2D move;
         states phase = states.ChoosePhase;
         MouseState oldMouse;
@@ -255,6 +261,7 @@ namespace DagligaHatet {
 
                 }
                 #endregion
+
                 #region Emenies
                 /*else {
                     while (true) {
@@ -381,25 +388,35 @@ namespace DagligaHatet {
                     }
                 }*/
 
+                #endregion
+
+                #region New 
 
                 else {
                     Random r = new Random();
-                    DrawEngine.ClearPermanent("selectedTiles");
-                    World.SelectedTiles.Clear();
-                    List<PlayerCharacter> listCanHitMe = new List<PlayerCharacter>();
-                    allEnemies.ForEach(x => {
-                        if (x.Attack.WouldHit(x, World.Map, World.SelectedTiles).Item1.Contains(turnMaster)) {
-                            listCanHitMe.Add(x);
-                        }
-                    });
-                    List<PlayerCharacter> listCanHit = turnMaster.Attack.WouldHit(turnMaster, World.Map, World.SelectedTiles).Item1;
-                    List<Tile> canMoveTo = World.FloodPath(turnMaster.MoveSpeed, turnMaster.Inhabited);
-                    canMoveTo.Remove(turnMaster.Inhabited);
+                        #region reset
+                        DrawEngine.ClearPermanent("selectedTiles");
+                        World.SelectedTiles.Clear();
+                        listCanHitMe = new List<PlayerCharacter>();
+                        allEnemies.ForEach(x => {
+                            if (x.Attack.WouldHit(x, World.Map, World.SelectedTiles).Item1.Contains(turnMaster)) {
+                                listCanHitMe.Add(x);
+                            }
+                        });
+                        listCanHit = turnMaster.Attack.WouldHit(turnMaster, World.Map, World.SelectedTiles).Item1;
+                        canMoveTo = World.FloodPath(turnMaster.MoveSpeed, turnMaster.Inhabited);
+                        canMoveTo.Remove(turnMaster.Inhabited);
+                        #endregion
+                    
 
+                    //Not Paused
                     if (!pause) {
                         if (turnMaster.Health > turnMaster.MaxHealth / 3) {
+                            #region Health over 1/3
                             if (listCanHitMe.Count > 2) {
+                                #region 3 Can hit me
                                 if (canMoveTo.Count > 0) {
+                                    #region Can move
                                     for (int i = 0; i < canMoveTo.Count; i++) {
                                         listCanHitMe.Clear();
                                         allEnemies.ForEach(x => {
@@ -413,6 +430,9 @@ namespace DagligaHatet {
                                         });
                                         if (listCanHitMe.Count <= 2) {
                                             canMoveTo.ForEach(x => DrawEngine.AddPermanent("selectedTiles", move, x.MapPosition, Vector2.Zero, 0.2f, 2, 0));
+                                            World.SelectedTiles = canMoveTo;
+                                            target = canMoveTo[i];
+                                            phase = states.MovePhase1;
                                             DrawEngine.AddPause(2f);
                                             pause = true;
                                             break;
@@ -421,23 +441,88 @@ namespace DagligaHatet {
                                     if (!pause) {
                                         if (listCanHit.Count > 0) {
                                             turnMaster.Attack.PrepareSkill(turnMaster, World.Map, World.SelectedTiles);
+                                            target = listCanHit.OrderBy(x => x.Health).Last().Inhabited;
+                                            phase = states.AttackPhase1;
                                             DrawEngine.AddPause(2f);
                                             pause = true;
                                         }
                                         else {
+                                            canMoveTo.ForEach(x => DrawEngine.AddPermanent("selectedTiles", move, x.MapPosition, Vector2.Zero, 0.2f, 2, 0));
+                                            target = canMoveTo[r.Next(canMoveTo.Count)];
+                                            World.SelectedTiles = canMoveTo;
+                                            phase = states.MovePhase1;
+                                            DrawEngine.AddPause(2f);
+                                            pause = true;
+                                        }
+                                    }
+                                    #endregion
+                                }
+                                else {
+                                    #region Can't move
+                                    if (listCanHit.Count > 0) {
+                                        turnMaster.Attack.PrepareSkill(turnMaster, World.Map, World.SelectedTiles);
+                                        target = listCanHit.OrderBy(x => x.Health).ToList().Last().Inhabited;
+                                        phase = states.AttackPhase1;
+                                        DrawEngine.AddPause(2f);
+                                        pause = true;
+                                    }
+                                    else {
+                                        //Skill
+                                    }
+                                    #endregion
+                                }
+                                #endregion
+                            }
+                            else {
+                                #region Less than 3 can hit me
+                                if (listCanHit.Count > 0) {
+                                    #region Can hit someone
+                                    turnMaster.Attack.PrepareSkill(turnMaster, World.Map, World.SelectedTiles);
+                                    target = listCanHit.OrderBy(x => x.Health).ToList().Last().Inhabited;
+                                    phase = states.AttackPhase1;
+                                    DrawEngine.AddPause(2f);
+                                    pause = true;
+                                    #endregion
+                                }
+                                else if (canMoveTo.Count > 0) {
+                                    for (int i = 0; i < canMoveTo.Count; i++) {
+                                        listCanHit.Clear();
+                                        if (turnMaster.Attack.WouldHitAtLocation(turnMaster, canMoveTo[i], World.Map, World.SelectedTiles).Item2) {
+                                            World.SelectedTiles = canMoveTo;
+                                            target = canMoveTo[i];
+                                            phase = states.MovePhase1;
+                                            DrawEngine.AddPause(2f);
+                                            pause = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!pause) {
+                                        if (listCanHit.Count > 0) {
+                                            target = listCanHit.OrderBy(x => x.Health).ToList().Last().Inhabited;
+                                            phase = states.AttackPhase1;
+                                            DrawEngine.AddPause(2f);
+                                            pause = true;
+                                        }
+                                        else {
+                                            Tuple<List<Tile>, bool> pathing = World.Path2(canMoveTo, 100, turnMaster.Inhabited, allEnemies.OrderBy(x => World.Distance(x.MapPosition, turnMaster.MapPosition)).Last().Inhabited);
+                                            Console.WriteLine(pathing.Item2);
+                                            int farthest = 0;
+                                            for (int i = 0; i < pathing.Item1.Count; i++) {
+                                                if (World.SelectedTiles.Exists(x => x.MapPosition == pathing.Item1[i].MapPosition)) {
+                                                    farthest = i;
+                                                }
+                                            }
+                                            turnMaster.Inhabited.MoveInhabited(pathing.Item1[farthest]);
+
                                             canMoveTo.ForEach(x => DrawEngine.AddPermanent("selectedTiles", move, x.MapPosition, Vector2.Zero, 0.2f, 2, 0));
                                             DrawEngine.AddPause(2f);
                                             pause = true;
                                         }
                                     }
                                 }
-                                else {
-
-                                }
+                                #endregion
                             }
-                            else {
-
-                            }
+                            #endregion
                         }
                         else {
                             if (listCanHit.Count == 0) {
@@ -447,12 +532,37 @@ namespace DagligaHatet {
                             }
                         }
                     }
-                    else if(pause) {
+                    //Paused
+                    else if (pause) {
+                        switch (phase) {
+                            case states.MovePhase1:
+                                World.SelectedTiles = canMoveTo;
+                                turnMaster.Inhabited.MoveInhabited(target);
+                                phase = states.ChoosePhase;
+                                pause = false;
+                                break;
+                            case states.SkillPhase1:
+                                break;
+                            case states.AttackPhase1:
+                                turnMaster.Attack.InvokeSkill(turnMaster, World.Map, World.SelectedTiles, target);
+                                phase = states.ChoosePhase;
+                                pause = false;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    #region old
+                    /*else if (pause) {
                         DrawEngine.ClearPermanent("selectedTiles");
                         World.SelectedTiles.Clear();
                         if (turnMaster.Health > turnMaster.MaxHealth / 3) {
+                            #region Health over 1/3
                             if (listCanHitMe.Count > 2) {
+                                #region 3 Can hit me
                                 if (canMoveTo.Count > 0) {
+                                    #region Can move
                                     for (int i = 0; i < canMoveTo.Count; i++) {
                                         listCanHitMe.Clear();
                                         allEnemies.ForEach(x => {
@@ -465,16 +575,14 @@ namespace DagligaHatet {
                                             World.SelectedTiles.Clear();
                                         });
                                         if (listCanHitMe.Count <= 2) {
-                                            World.SelectedTiles = canMoveTo;
-                                            turnMaster.Inhabited.MoveInhabited(canMoveTo[i]);
+                                            turnMaster.Inhabited.MoveInhabited(target);
                                             pause = false;
                                             break;
                                         }
                                     }
                                     if (pause) {
                                         if (listCanHit.Count > 0) {
-                                            turnMaster.Attack.PrepareSkill(turnMaster, World.Map, World.SelectedTiles);
-                                            turnMaster.Attack.InvokeSkill(turnMaster, World.Map, World.SelectedTiles, listCanHit.OrderBy(x => x.Health).Last().Inhabited);
+                                            turnMaster.Attack.InvokeSkill(turnMaster, World.Map, World.SelectedTiles, target);
                                             pause = false;
                                         }
                                         else {
@@ -483,23 +591,43 @@ namespace DagligaHatet {
                                             pause = false;
                                         }
                                     }
-
+                                    #endregion
+                                }
+                                else {
+                                    #region Can't move
+                                    if (listCanHit.Count > 0) {
+                                        turnMaster.Attack.PrepareSkill(turnMaster, World.Map, World.SelectedTiles);
+                                        turnMaster.Attack.InvokeSkill(turnMaster, World.Map, World.SelectedTiles, listCanHit.OrderBy(x => x.Health).Last().Inhabited);
+                                        pause = false;
+                                    }
+                                    else {
+                                        //Skill
+                                    }
+                                    #endregion
                                 }
 
                                 //Move
+                                #endregion
                             }
                             else {
+                                #region Less than 3 can hit me
 
+                                #endregion
                             }
+                            #endregion
                         }
                         else {
+                            #region Health under 1/3
                             if (listCanHit.Count == 0) {
                                 canMoveTo.ForEach(x => DrawEngine.AddPermanent("selectedTiles", move, x.MapPosition, Vector2.Zero, 0.2f, 2, 0));
                                 DrawEngine.AddPause(2f);
                                 pause = true;
                             }
+                            #endregion
                         }
-                    }
+                    }*/
+                    #endregion
+
                     if (!pause) {
                         World.SelectedTiles.Clear();
                         DrawEngine.ClearPermanent("selectedTiles");

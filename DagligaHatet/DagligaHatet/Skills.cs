@@ -57,6 +57,10 @@ namespace DagligaHatet {
             }
             return new Tuple<List<PlayerCharacter>, bool>(new List<PlayerCharacter>(), false);
         }
+
+        public virtual Tuple<List<PlayerCharacter>, bool> WouldHitAtLocation(PlayerCharacter turnMaster, Tile location, List<Tile> map, List<Tile> selectedTiles) {
+            return new Tuple<List<PlayerCharacter>, bool>(new List<PlayerCharacter>(), false);
+        }
     }
 
     public class AttackMelee : Attack {
@@ -73,6 +77,16 @@ namespace DagligaHatet {
         public override Tuple<List<PlayerCharacter>, bool> WouldHit(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
             PrepareSkill(turnMaster, map, selectedTiles);
             Tuple<List<PlayerCharacter>,bool> returnedData = base.WouldHit(turnMaster, map, selectedTiles);
+            selectedTiles.Clear();
+            DrawEngine.ClearPermanent("selectedTiles");
+            return returnedData;
+        }
+
+        public override Tuple<List<PlayerCharacter>, bool> WouldHitAtLocation(PlayerCharacter turnMaster, Tile location, List<Tile> map, List<Tile> selectedTiles) {
+            PlayerCharacter temp = turnMaster;
+            temp.Inhabited = location;
+            PrepareSkill(temp, map, selectedTiles);
+            Tuple<List<PlayerCharacter>, bool> returnedData = base.WouldHit(turnMaster, map, selectedTiles);
             selectedTiles.Clear();
             DrawEngine.ClearPermanent("selectedTiles");
             return returnedData;
@@ -98,6 +112,17 @@ namespace DagligaHatet {
             DrawEngine.ClearPermanent("selectedTiles");
             return returnedData;
         }
+
+        public override Tuple<List<PlayerCharacter>, bool> WouldHitAtLocation(PlayerCharacter turnMaster, Tile location, List<Tile> map, List<Tile> selectedTiles) {
+            PlayerCharacter temp = turnMaster;
+            temp.Inhabited = location;
+            PrepareSkill(temp, map, selectedTiles);
+            Tuple<List<PlayerCharacter>, bool> returnedData = base.WouldHit(turnMaster, map, selectedTiles);
+            selectedTiles.Clear();
+            DrawEngine.ClearPermanent("selectedTiles");
+            return returnedData;
+        }
+
     }
 
     public class AttackRangeXCross : Attack {
@@ -123,6 +148,17 @@ namespace DagligaHatet {
             DrawEngine.ClearPermanent("selectedTiles");
             return returnedData;
         }
+
+        public override Tuple<List<PlayerCharacter>, bool> WouldHitAtLocation(PlayerCharacter turnMaster, Tile location, List<Tile> map, List<Tile> selectedTiles) {
+            PlayerCharacter temp = turnMaster;
+            temp.Inhabited = location;
+            PrepareSkill(temp, map, selectedTiles);
+            Tuple<List<PlayerCharacter>, bool> returnedData = base.WouldHit(turnMaster, map, selectedTiles);
+            selectedTiles.Clear();
+            DrawEngine.ClearPermanent("selectedTiles");
+            return returnedData;
+        }
+
     }
     #endregion
 

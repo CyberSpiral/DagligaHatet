@@ -44,7 +44,7 @@ namespace DagligaHatet {
             selectedTiles.Clear();
         }
 
-        public Tuple<PlayerCharacter, bool> WouldHit(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
+        public virtual Tuple<List<PlayerCharacter>, bool> WouldHit(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
             if (selectedTiles.Exists(x => x.Inhabited && x.Inhabitant.Alignment != turnMaster.Alignment)) {
                 List<PlayerCharacter> potentialTarget = new List<PlayerCharacter>();
                 selectedTiles.ForEach(x => {
@@ -53,9 +53,9 @@ namespace DagligaHatet {
                     }
                 });
                 potentialTarget = potentialTarget.OrderBy(x => x.Health).ToList();
-                return new Tuple<PlayerCharacter, bool>(potentialTarget.Last(), true);
+                return new Tuple<List<PlayerCharacter>, bool>(potentialTarget, true);
             }
-            return new Tuple<PlayerCharacter, bool>(null, false);
+            return new Tuple<List<PlayerCharacter>, bool>(new List<PlayerCharacter>(), false);
         }
     }
 
@@ -68,6 +68,14 @@ namespace DagligaHatet {
             selectedTiles.AddRange(map.Where(x => (World.Distance(x.MapPosition, turnMaster.MapPosition)) < turnMaster.Range));
             selectedTiles.RemoveAll(x => x.MapPosition == turnMaster.MapPosition);
             base.PrepareSkill(turnMaster, map, selectedTiles);
+        }
+
+        public override Tuple<List<PlayerCharacter>, bool> WouldHit(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
+            PrepareSkill(turnMaster, map, selectedTiles);
+            Tuple<List<PlayerCharacter>,bool> returnedData = base.WouldHit(turnMaster, map, selectedTiles);
+            selectedTiles.Clear();
+            DrawEngine.ClearPermanent("selectedTiles");
+            return returnedData;
         }
     }
 
@@ -82,6 +90,13 @@ namespace DagligaHatet {
 
             selectedTiles.RemoveAll(x => x.MapPosition == turnMaster.MapPosition);
             base.PrepareSkill(turnMaster, map, selectedTiles);
+        }
+        public override Tuple<List<PlayerCharacter>, bool> WouldHit(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
+            PrepareSkill(turnMaster, map, selectedTiles);
+            Tuple<List<PlayerCharacter>, bool> returnedData = base.WouldHit(turnMaster, map, selectedTiles);
+            selectedTiles.Clear();
+            DrawEngine.ClearPermanent("selectedTiles");
+            return returnedData;
         }
     }
 
@@ -100,6 +115,13 @@ namespace DagligaHatet {
 
             selectedTiles.RemoveAll(x => x.MapPosition == turnMaster.MapPosition);
             base.PrepareSkill(turnMaster, map, selectedTiles);
+        }
+        public override Tuple<List<PlayerCharacter>, bool> WouldHit(PlayerCharacter turnMaster, List<Tile> map, List<Tile> selectedTiles) {
+            PrepareSkill(turnMaster, map, selectedTiles);
+            Tuple<List<PlayerCharacter>, bool> returnedData = base.WouldHit(turnMaster, map, selectedTiles);
+            selectedTiles.Clear();
+            DrawEngine.ClearPermanent("selectedTiles");
+            return returnedData;
         }
     }
     #endregion

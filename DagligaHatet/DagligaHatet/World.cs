@@ -28,32 +28,44 @@ namespace DagligaHatet {
 
             tempTile = GetTile(new Vector2(1, 3));
             Order.Add("Knight");
-            tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("Knight1"), "Knight", new AttackMelee(content.Load<Texture2D>("Sword"), content.Load<Texture2D>("Cross")), 3 /*Range*/, 3 /*Damage*/, new SkillKnightWhirlwind(content.Load<Texture2D>("Sword"), content.Load<Texture2D>("WhirlwindAni")), 2 /*Skill Range*/, 2 /*Skill Damage*/, 3 /*Movement Speedu*/, 10 /*Health*/, 0/*Alignment*/));
+            tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("Knight1"), "Knight", new AttackMelee(content.Load<Texture2D>("Sword"),
+                content.Load<Texture2D>("Cross")), 3 /*Range*/, 3 /*Damage*/, new SkillKnightWhirlwind(content.Load<Texture2D>("Sword"),
+                content.Load<Texture2D>("WhirlwindAni")), 2 /*Skill Range*/, 2 /*Skill Damage*/, 4 /*Movement Speedu*/, 10 /*Health*/, 0/*Alignment*/));
             DrawEngine.AddPermanent(tempTile.Inhabitant.Name, tempTile.Inhabitant.Texture, tempTile.MapPosition, 0.5f);
 
-            tempTile = GetTile(new Vector2(12, 12));
+            tempTile = GetTile(new Vector2(2, 3));
             Order.Add("S1");
-            tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("S"), "S1", new AttackRangeCross(content.Load<Texture2D>("Sword"), content.Load<Texture2D>("Cross")), 5/*Range*/, 3/*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")), 3 /*Skill Range*/, 2/*Skill Damage*/, 4/*Movement Speed*/, 14/*Health*/, 1/*Alignment*/));
+            tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("S"), "S1", new AttackRangeCross(content.Load<Texture2D>("Sword"),
+                content.Load<Texture2D>("Cross")), 5/*Range*/, 3/*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")),
+                3 /*Skill Range*/, 2/*Skill Damage*/, 4/*Movement Speed*/, 14/*Health*/, 1/*Alignment*/));
             DrawEngine.AddPermanent(tempTile.Inhabitant.Name, tempTile.Inhabitant.Texture, tempTile.MapPosition, 0.5f);
 
-            tempTile = GetTile(new Vector2(5, 4));
+            tempTile = GetTile(new Vector2(3, 3));
             Order.Add("Wizard");
-            tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("Wizard1"), "Wizard", new AttackRangeCross(content.Load<Texture2D>("Sword"), content.Load<Texture2D>("Cross")), 4 /*Range*/, 3 /*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")), 100 /*Skill Range*/, 3 /*Skill Damage*/, 4 /*Movement Speed*/, 10 /*Health*/, 0/*Alignment*/));
+            tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("Wizard1"), "Wizard", new AttackRangeCross(content.Load<Texture2D>("Sword"),
+                content.Load<Texture2D>("Cross")), 4 /*Range*/, 3 /*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")),
+                100 /*Skill Range*/, 3 /*Skill Damage*/, 5 /*Movement Speed*/, 10 /*Health*/, 0/*Alignment*/));
             DrawEngine.AddPermanent(tempTile.Inhabitant.Name, tempTile.Inhabitant.Texture, tempTile.MapPosition, 0.5f);
 
             tempTile = GetTile(new Vector2(13, 10));
             Order.Add("S2");
-            tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("S"), "S2", new AttackMelee(content.Load<Texture2D>("Sword"), content.Load<Texture2D>("Cross")), 3/*Range*/, 4/*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")), 3 /*Skill Range*/, 2/*Skill Damage*/, 3/*Movement Speed*/, 20/*Health*/, 1/*Alignment*/));
+            tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("S"), "S2", new AttackMelee(content.Load<Texture2D>("Sword"),
+                content.Load<Texture2D>("Cross")), 3/*Range*/, 4/*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")),
+                3 /*Skill Range*/, 2/*Skill Damage*/, 3/*Movement Speed*/, 20/*Health*/, 1/*Alignment*/));
             DrawEngine.AddPermanent(tempTile.Inhabitant.Name, tempTile.Inhabitant.Texture, tempTile.MapPosition, 0.5f);
 
-            tempTile = GetTile(new Vector2(10, 3));
+            tempTile = GetTile(new Vector2(2, 4));
             Order.Add("Ranger");
-            tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("Ranger1"), "Ranger", new AttackRangeXCross(content.Load<Texture2D>("Sword"), content.Load<Texture2D>("Cross")), 5 /*Range*/, 2 /*Damage*/, new SkillRangerBomb(content.Load<Texture2D>("Sword"), content.Load<Texture2D>("Target")), 4 /*Skill Range*/, 3 /*Skill Damage*/, 5 /*Movement Speed*/, 13 /*Health*/, 0/*Alignment*/));
+            tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("Ranger1"), "Ranger", new AttackRangeXCross(content.Load<Texture2D>("Sword"),
+                content.Load<Texture2D>("Cross")), 5 /*Range*/, 2 /*Damage*/, new SkillRangerBomb(content.Load<Texture2D>("Sword"),
+                content.Load<Texture2D>("Target")), 4 /*Skill Range*/, 3 /*Skill Damage*/, 6 /*Movement Speed*/, 13 /*Health*/, 0/*Alignment*/));
             DrawEngine.AddPermanent(tempTile.Inhabitant.Name, tempTile.Inhabitant.Texture, tempTile.MapPosition, 0.5f);
 
             tempTile = GetTile(new Vector2(10, 14));
             Order.Add("S3");
-            tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("S"), "S3", new AttackRangeXCross(content.Load<Texture2D>("Sword"), content.Load<Texture2D>("Cross")), 4/*Range*/, 4/*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")), 3 /*Skill Range*/, 2/*Skill Damage*/, 5/*Movement Speed*/, 8/*Health*/, 1/*Alignment*/));
+            tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("S"), "S3", new AttackRangeXCross(content.Load<Texture2D>("Sword"),
+                content.Load<Texture2D>("Cross")), 4/*Range*/, 4/*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")),
+                3 /*Skill Range*/, 2/*Skill Damage*/, 5/*Movement Speed*/, 8/*Health*/, 1/*Alignment*/));
             DrawEngine.AddPermanent(tempTile.Inhabitant.Name, tempTile.Inhabitant.Texture, tempTile.MapPosition, 0.5f);
 
         }
@@ -73,7 +85,7 @@ namespace DagligaHatet {
             return (Math.Abs(v1.X - v2.X) + Math.Abs(v1.Y - v2.Y));
         }
 
-        public static Tuple<List<Tile>, bool> Path(List<Tile> acceptable, int max, Tile start, Tile stop) {
+        /*public static Tuple<List<Tile>, bool> Path(List<Tile> acceptable, int max, Tile start, Tile stop) {
             Random r = new Random();
             List<List<Tile>> GreatPath = new List<List<Tile>>();
             for (int i = 0; i < 30; i++) {
@@ -84,6 +96,7 @@ namespace DagligaHatet {
                     float differenceX = path.Last().MapPosition.X - stop.MapPosition.X;
                     float differenceY = path.Last().MapPosition.Y - stop.MapPosition.Y;
                     bool added = false;
+
                     if (differenceX > 0) {
                         temp = GetTile(new Vector2(path.Last().MapPosition.X - 1, path.Last().MapPosition.Y));
                         if (temp != null && acceptable.Exists(x => x.MapPosition == temp.MapPosition)) {
@@ -157,6 +170,81 @@ namespace DagligaHatet {
                 return new Tuple<List<Tile>, bool>(GreatPath.Last(), true);
             else
                 return new Tuple<List<Tile>, bool>(null, false);
+        } */
+
+        public static Tuple<List<Tile>, bool> Path2(List<Tile> acceptable, int distance, Tile start, Tile stop) {
+            List<Flood> floodList = new List<Flood>();
+            Map.ForEach(x => {
+                if (acceptable.Contains(x))
+                    floodList.Add(new Flood(x.MapPosition, 0));
+                else
+                    floodList.Add(new Flood(x.MapPosition, -1));
+            });
+            floodList.ForEach(x => x.FillNeighbours(floodList));
+
+            floodList.Find(x => x.MapPosition == start.MapPosition).Steps = distance;
+            for (int i = distance; i > 0; i--) {
+                floodList.Where(x => x.Steps == i).ToList().ForEach(x => {
+                    if (floodList.Exists(y => y.MapPosition == new Vector2(x.MapPosition.X - 1, x.MapPosition.Y) && y.Steps != -1 && y.Steps == 0)) {
+                        floodList.Find(y => y.MapPosition == new Vector2(x.MapPosition.X - 1, x.MapPosition.Y)).Steps = i - 1;
+                    }
+                    if (floodList.Exists(y => y.MapPosition == new Vector2(x.MapPosition.X + 1, x.MapPosition.Y) && y.Steps != -1 && y.Steps == 0)) {
+                        floodList.Find(y => y.MapPosition == new Vector2(x.MapPosition.X + 1, x.MapPosition.Y)).Steps = i - 1;
+                    }
+                    if (floodList.Exists(y => y.MapPosition == new Vector2(x.MapPosition.X, x.MapPosition.Y + 1) && y.Steps != -1 && y.Steps == 0)) {
+                        floodList.Find(y => y.MapPosition == new Vector2(x.MapPosition.X, x.MapPosition.Y + 1)).Steps = i - 1;
+                    }
+                    if (floodList.Exists(y => y.MapPosition == new Vector2(x.MapPosition.X, x.MapPosition.Y - 1) && y.Steps != -1 && y.Steps == 0)) {
+                        floodList.Find(y => y.MapPosition == new Vector2(x.MapPosition.X, x.MapPosition.Y - 1)).Steps = i - 1;
+                    }
+                });
+            }
+            while (true) {
+                Random r = new Random();
+                List<Flood> path = new List<Flood>();
+                bool end = false;
+                path.Add(floodList.Find(x => x.MapPosition == start.MapPosition));
+                while (!end) {
+                    float differenceX = path.Last().MapPosition.X - stop.MapPosition.X;
+                    float differenceY = path.Last().MapPosition.Y - stop.MapPosition.Y;
+                    List<Flood> eliglebleMoves = path.Last().Neighbours.Where(x => x != null && x.Steps == path.Last().Steps - 1).ToList();
+                    if (eliglebleMoves.Count > 0) {
+                        if (differenceX < 0 && eliglebleMoves.Contains(path.Last().NeighbourRight)) {
+                            path.Add(path.Last().NeighbourRight);
+                        }
+                        else if (differenceX > 0 && eliglebleMoves.Contains(path.Last().NeighbourLeft)) {
+                            path.Add(path.Last().NeighbourLeft);
+                        }
+                        else if (differenceY > 0 && eliglebleMoves.Contains(path.Last().NeighbourTop)) {
+                            path.Add(path.Last().NeighbourTop);
+                        }
+                        else if (differenceY < 0 && eliglebleMoves.Contains(path.Last().NeighbourDown)) {
+                            path.Add(path.Last().NeighbourDown);
+                        }
+                        else {
+                            path.Add(eliglebleMoves[r.Next(eliglebleMoves.Count)]);
+                        }
+                        if (path.Last().MapPosition == stop.MapPosition) {
+                            List<Tile> tilePath = new List<Tile>();
+                            path.ForEach(x => tilePath.Add(World.GetTile(x.MapPosition)));
+                            return new Tuple<List<Tile>, bool>(tilePath, true);
+                        }
+                    }
+                    else {
+                        if (path.Last().MapPosition == stop.MapPosition) {
+                            List<Tile> tilePath = new List<Tile>();
+                            path.ForEach(x => tilePath.Add(World.GetTile(x.MapPosition)));
+                            return new Tuple<List<Tile>, bool>(tilePath, true);
+                        }
+                        else {
+                            path.Last().Steps = -1;
+                            DrawEngine.AddPermanent("selectedTiles", Game1.Cross, path.Last().MapPosition, 0);
+                            floodList.ForEach(x => x.FillNeighbours(floodList));
+                            end = true;
+                        }
+                    }
+                }
+            }
         }
 
         public static List<Tile> FloodPath(int distance, Tile start) {
@@ -214,10 +302,41 @@ namespace DagligaHatet {
     }
     public class Flood {
         public Vector2 MapPosition { get; }
+
+        public Flood NeighbourTop { get; set; }
+        public Flood NeighbourDown { get; set; }
+        public Flood NeighbourLeft { get; set; }
+        public Flood NeighbourRight { get; set; }
+        public List<Flood> Neighbours { get; } = new List<Flood>();
+
         public int Steps { get; set; }
         public Flood(Vector2 mapPosition, int steps) {
             Steps = steps;
             MapPosition = mapPosition;
+        }
+        public void FillNeighbours(List<Flood> list) {
+            NeighbourRight = null;
+            NeighbourLeft = null;
+            NeighbourTop = null;
+            NeighbourDown = null;
+            list.ForEach(x => {
+                if (x.MapPosition == new Vector2(MapPosition.X + 1, MapPosition.Y)) {
+                    NeighbourRight = x;
+                }
+                else if (x.MapPosition == new Vector2(MapPosition.X - 1, MapPosition.Y)) {
+                    NeighbourLeft = x;
+                }
+                else if (x.MapPosition == new Vector2(MapPosition.X, MapPosition.Y + 1)) {
+                    NeighbourDown = x;
+                }
+                else if (x.MapPosition == new Vector2(MapPosition.X, MapPosition.Y - 1)) {
+                    NeighbourTop = x;
+                }
+            });
+            Neighbours.Add(NeighbourDown);
+            Neighbours.Add(NeighbourTop);
+            Neighbours.Add(NeighbourLeft);
+            Neighbours.Add(NeighbourRight);
         }
     }
 
@@ -232,7 +351,7 @@ namespace DagligaHatet {
         public void MoveInhabited(Tile target) {
             target.AddInhabitor(Inhabitant);
             DrawEngine.PermanentAnimations.Find(x => x.Name == Inhabitant.Name).Position = World.TranslateMapPosition(target.MapPosition);
-            Tuple<List<Tile>, bool> path = World.Path(World.SelectedTiles, Inhabitant.MoveSpeed, this, target);
+            Tuple<List<Tile>, bool> path = World.Path2(World.SelectedTiles, Inhabitant.MoveSpeed, this, target);
             if (path.Item2) {
                 for (int i = 0; i < path.Item1.Count - 1; i++) {
                     DrawEngine.AddQueued(Inhabitant.Name, Inhabitant.Texture, path.Item1[i].MapPosition, Vector2.Zero, 0.3f, false, path.Item1[i + 1].MapPosition);

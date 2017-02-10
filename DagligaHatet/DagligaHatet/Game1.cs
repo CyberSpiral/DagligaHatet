@@ -16,7 +16,6 @@ namespace DagligaHatet {
     //public delegate void ClickedEventHandler(object sender, EventArgs e);
 
 
-
     public class Game1 : Microsoft.Xna.Framework.Game {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
@@ -26,6 +25,7 @@ namespace DagligaHatet {
         Button skipButton;
         SpriteFont GothicFont;
         bool pause;
+        public static Texture2D Cross;
 
         Texture2D move;
         states phase = states.ChoosePhase;
@@ -62,6 +62,7 @@ namespace DagligaHatet {
             skillButton = new Button(new Rectangle(400, 30, 100, 60), Content.Load<Texture2D>("Skill"));
             skipButton = new Button(new Rectangle(600, 30, 100, 60), Content.Load<Texture2D>("Skip"));
             pause = false;
+            Cross = Content.Load<Texture2D>("Cross");
 
             DrawEngine.AddPermanent("moveButton", moveButton.Texture, World.UnTranslateMapPosition(new Vector2(moveButton.Hitbox.X, moveButton.Hitbox.Y)), 1);
             DrawEngine.AddPermanent("attackButton", attackButton.Texture, World.UnTranslateMapPosition(new Vector2(attackButton.Hitbox.X, attackButton.Hitbox.Y)), 1);
@@ -255,7 +256,7 @@ namespace DagligaHatet {
                 }
                 #endregion
                 #region Emenies
-                else {
+                /*else {
                     while (true) {
                         DrawEngine.ClearPermanent("selectedTiles");
                         World.SelectedTiles.Clear();
@@ -376,6 +377,132 @@ namespace DagligaHatet {
                         break;
                     }
                     if (!pause) {
+                        World.OrderNumber++;
+                    }
+                }*/
+
+
+                else {
+                    Random r = new Random();
+                    DrawEngine.ClearPermanent("selectedTiles");
+                    World.SelectedTiles.Clear();
+                    List<PlayerCharacter> listCanHitMe = new List<PlayerCharacter>();
+                    allEnemies.ForEach(x => {
+                        if (x.Attack.WouldHit(x, World.Map, World.SelectedTiles).Item1.Contains(turnMaster)) {
+                            listCanHitMe.Add(x);
+                        }
+                    });
+                    List<PlayerCharacter> listCanHit = turnMaster.Attack.WouldHit(turnMaster, World.Map, World.SelectedTiles).Item1;
+                    List<Tile> canMoveTo = World.FloodPath(turnMaster.MoveSpeed, turnMaster.Inhabited);
+                    canMoveTo.Remove(turnMaster.Inhabited);
+
+                    if (!pause) {
+                        if (turnMaster.Health > turnMaster.MaxHealth / 3) {
+                            if (listCanHitMe.Count > 2) {
+                                if (canMoveTo.Count > 0) {
+                                    for (int i = 0; i < canMoveTo.Count; i++) {
+                                        listCanHitMe.Clear();
+                                        allEnemies.ForEach(x => {
+                                            DrawEngine.ClearPermanent("selectedTiles");
+                                            World.SelectedTiles.Clear();
+                                            x.Attack.PrepareSkill(x, World.Map, World.SelectedTiles);
+                                            if (World.SelectedTiles.Exists(y => y == canMoveTo[i]))
+                                                listCanHitMe.Add(x);
+                                            DrawEngine.ClearPermanent("selectedTiles");
+                                            World.SelectedTiles.Clear();
+                                        });
+                                        if (listCanHitMe.Count <= 2) {
+                                            canMoveTo.ForEach(x => DrawEngine.AddPermanent("selectedTiles", move, x.MapPosition, Vector2.Zero, 0.2f, 2, 0));
+                                            DrawEngine.AddPause(2f);
+                                            pause = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!pause) {
+                                        if (listCanHit.Count > 0) {
+                                            turnMaster.Attack.PrepareSkill(turnMaster, World.Map, World.SelectedTiles);
+                                            DrawEngine.AddPause(2f);
+                                            pause = true;
+                                        }
+                                        else {
+                                            canMoveTo.ForEach(x => DrawEngine.AddPermanent("selectedTiles", move, x.MapPosition, Vector2.Zero, 0.2f, 2, 0));
+                                            DrawEngine.AddPause(2f);
+                                            pause = true;
+                                        }
+                                    }
+                                }
+                                else {
+
+                                }
+                            }
+                            else {
+
+                            }
+                        }
+                        else {
+                            if (listCanHit.Count == 0) {
+                                canMoveTo.ForEach(x => DrawEngine.AddPermanent("selectedTiles", move, x.MapPosition, Vector2.Zero, 0.2f, 2, 0));
+                                DrawEngine.AddPause(2f);
+                                pause = true;
+                            }
+                        }
+                    }
+                    else if(pause) {
+                        DrawEngine.ClearPermanent("selectedTiles");
+                        World.SelectedTiles.Clear();
+                        if (turnMaster.Health > turnMaster.MaxHealth / 3) {
+                            if (listCanHitMe.Count > 2) {
+                                if (canMoveTo.Count > 0) {
+                                    for (int i = 0; i < canMoveTo.Count; i++) {
+                                        listCanHitMe.Clear();
+                                        allEnemies.ForEach(x => {
+                                            DrawEngine.ClearPermanent("selectedTiles");
+                                            World.SelectedTiles.Clear();
+                                            x.Attack.PrepareSkill(x, World.Map, World.SelectedTiles);
+                                            if (World.SelectedTiles.Exists(y => y == canMoveTo[i]))
+                                                listCanHitMe.Add(x);
+                                            DrawEngine.ClearPermanent("selectedTiles");
+                                            World.SelectedTiles.Clear();
+                                        });
+                                        if (listCanHitMe.Count <= 2) {
+                                            World.SelectedTiles = canMoveTo;
+                                            turnMaster.Inhabited.MoveInhabited(canMoveTo[i]);
+                                            pause = false;
+                                            break;
+                                        }
+                                    }
+                                    if (pause) {
+                                        if (listCanHit.Count > 0) {
+                                            turnMaster.Attack.PrepareSkill(turnMaster, World.Map, World.SelectedTiles);
+                                            turnMaster.Attack.InvokeSkill(turnMaster, World.Map, World.SelectedTiles, listCanHit.OrderBy(x => x.Health).Last().Inhabited);
+                                            pause = false;
+                                        }
+                                        else {
+                                            World.SelectedTiles = canMoveTo;
+                                            turnMaster.Inhabited.MoveInhabited(canMoveTo[r.Next(canMoveTo.Count)]);
+                                            pause = false;
+                                        }
+                                    }
+
+                                }
+
+                                //Move
+                            }
+                            else {
+
+                            }
+                        }
+                        else {
+                            if (listCanHit.Count == 0) {
+                                canMoveTo.ForEach(x => DrawEngine.AddPermanent("selectedTiles", move, x.MapPosition, Vector2.Zero, 0.2f, 2, 0));
+                                DrawEngine.AddPause(2f);
+                                pause = true;
+                            }
+                        }
+                    }
+                    if (!pause) {
+                        World.SelectedTiles.Clear();
+                        DrawEngine.ClearPermanent("selectedTiles");
                         World.OrderNumber++;
                     }
                 }

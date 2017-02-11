@@ -33,7 +33,7 @@ namespace DagligaHatet {
                 content.Load<Texture2D>("WhirlwindAni")), 2 /*Skill Range*/, 2 /*Skill Damage*/, 4 /*Movement Speedu*/, 10 /*Health*/, 0/*Alignment*/));
             DrawEngine.AddPermanent(tempTile.Inhabitant.Name, tempTile.Inhabitant.Texture, tempTile.MapPosition, 0.5f);
 
-            tempTile = GetTile(new Vector2(2, 3));
+            tempTile = GetTile(new Vector2(7, 9));
             Order.Add("S1");
             tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("S"), "S1", new AttackRangeCross(content.Load<Texture2D>("Sword"),
                 content.Load<Texture2D>("Cross")), 5/*Range*/, 3/*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")),
@@ -185,21 +185,48 @@ namespace DagligaHatet {
             floodList.Find(x => x.MapPosition == start.MapPosition).Steps = distance;
             for (int i = distance; i > 0; i--) {
                 floodList.Where(x => x.Steps == i).ToList().ForEach(x => {
-                    if (floodList.Exists(y => y.MapPosition == new Vector2(x.MapPosition.X - 1, x.MapPosition.Y) && y.Steps != -1 && y.Steps == 0)) {
-                        floodList.Find(y => y.MapPosition == new Vector2(x.MapPosition.X - 1, x.MapPosition.Y)).Steps = i - 1;
+                    if (x.NeighbourLeft != null && x.NeighbourLeft.Steps == 0) {
+                        x.NeighbourLeft.Steps = i - 1;
                     }
-                    if (floodList.Exists(y => y.MapPosition == new Vector2(x.MapPosition.X + 1, x.MapPosition.Y) && y.Steps != -1 && y.Steps == 0)) {
-                        floodList.Find(y => y.MapPosition == new Vector2(x.MapPosition.X + 1, x.MapPosition.Y)).Steps = i - 1;
+                    if (x.NeighbourRight != null && x.NeighbourRight.Steps == 0) {
+                        x.NeighbourRight.Steps = i - 1;
                     }
-                    if (floodList.Exists(y => y.MapPosition == new Vector2(x.MapPosition.X, x.MapPosition.Y + 1) && y.Steps != -1 && y.Steps == 0)) {
-                        floodList.Find(y => y.MapPosition == new Vector2(x.MapPosition.X, x.MapPosition.Y + 1)).Steps = i - 1;
+                    if (x.NeighbourTop != null && x.NeighbourTop.Steps == 0) {
+                        x.NeighbourTop.Steps = i - 1;
                     }
-                    if (floodList.Exists(y => y.MapPosition == new Vector2(x.MapPosition.X, x.MapPosition.Y - 1) && y.Steps != -1 && y.Steps == 0)) {
-                        floodList.Find(y => y.MapPosition == new Vector2(x.MapPosition.X, x.MapPosition.Y - 1)).Steps = i - 1;
+                    if (x.NeighbourDown != null && x.NeighbourDown.Steps == 0) {
+                        x.NeighbourDown.Steps = i - 1;
                     }
                 });
             }
             while (true) {
+                if (floodList.Find(x => x.MapPosition == start.MapPosition).Steps == -1) {
+                    Map.ForEach(x => {
+                        if (acceptable.Contains(x))
+                            floodList.Add(new Flood(x.MapPosition, 0));
+                        else
+                            floodList.Add(new Flood(x.MapPosition, -1));
+                    });
+                    floodList.ForEach(x => x.FillNeighbours(floodList));
+
+                    floodList.Find(x => x.MapPosition == start.MapPosition).Steps = distance;
+                    for (int i = distance; i > 0; i--) {
+                        floodList.Where(x => x.Steps == i).ToList().ForEach(x => {
+                            if (x.NeighbourLeft != null && x.NeighbourLeft.Steps == 0) {
+                                x.NeighbourLeft.Steps = i - 1;
+                            }
+                            if (x.NeighbourRight != null && x.NeighbourRight.Steps == 0) {
+                                x.NeighbourRight.Steps = i - 1;
+                            }
+                            if (x.NeighbourTop != null && x.NeighbourTop.Steps == 0) {
+                                x.NeighbourTop.Steps = i - 1;
+                            }
+                            if (x.NeighbourDown != null && x.NeighbourDown.Steps == 0) {
+                                x.NeighbourDown.Steps = i - 1;
+                            }
+                        });
+                    }
+                }
                 Random r = new Random();
                 List<Flood> path = new List<Flood>();
                 bool end = false;

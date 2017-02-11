@@ -394,20 +394,20 @@ namespace DagligaHatet {
 
                 else {
                     Random r = new Random();
-                        #region reset
-                        DrawEngine.ClearPermanent("selectedTiles");
-                        World.SelectedTiles.Clear();
-                        listCanHitMe = new List<PlayerCharacter>();
-                        allEnemies.ForEach(x => {
-                            if (x.Attack.WouldHit(x, World.Map, World.SelectedTiles).Item1.Contains(turnMaster)) {
-                                listCanHitMe.Add(x);
-                            }
-                        });
-                        listCanHit = turnMaster.Attack.WouldHit(turnMaster, World.Map, World.SelectedTiles).Item1;
-                        canMoveTo = World.FloodPath(turnMaster.MoveSpeed, turnMaster.Inhabited);
-                        canMoveTo.Remove(turnMaster.Inhabited);
-                        #endregion
-                    
+                    #region reset
+                    DrawEngine.ClearPermanent("selectedTiles");
+                    World.SelectedTiles.Clear();
+                    listCanHitMe = new List<PlayerCharacter>();
+                    allEnemies.ForEach(x => {
+                        if (x.Attack.WouldHit(x, World.Map, World.SelectedTiles).Item1.Contains(turnMaster)) {
+                            listCanHitMe.Add(x);
+                        }
+                    });
+                    listCanHit = turnMaster.Attack.WouldHit(turnMaster, World.Map, World.SelectedTiles).Item1;
+                    canMoveTo = World.FloodPath(turnMaster.MoveSpeed, turnMaster.Inhabited);
+                    canMoveTo.Remove(turnMaster.Inhabited);
+                    #endregion
+
 
                     //Not Paused
                     if (!pause) {
@@ -485,51 +485,57 @@ namespace DagligaHatet {
                                     #endregion
                                 }
                                 else if (canMoveTo.Count > 0) {
-                                    for (int i = 0; i < canMoveTo.Count; i++) {
-                                        listCanHit.Clear();
-                                        if (turnMaster.Attack.WouldHitAtLocation(turnMaster, canMoveTo[i], World.Map, World.SelectedTiles).Item2) {
-                                            World.SelectedTiles = canMoveTo;
-                                            target = canMoveTo[i];
-                                            phase = states.MovePhase1;
-                                            DrawEngine.AddPause(2f);
-                                            pause = true;
+                                    
+                                    Tuple <List<Tile>, bool> pathing = World.Path2(World.Map.Where(x => !x.Inhabited || (allEnemies.OrderByDescending(h => World.Distance(h.MapPosition,  turnMaster.MapPosition)).Last().Inhabited == x)).ToList(), 100, turnMaster.Inhabited, allEnemies.OrderByDescending(x => World.Distance(x.MapPosition, turnMaster.MapPosition)).Last().Inhabited);
+                                    Console.WriteLine(pathing.Item2);
+                                    pathing.Item1.RemoveAt(0);
+                                    pathing.Item1.Remove(pathing.Item1.Last());
+                                    int farthest = 0;
+                                    for (int i = 0; i < pathing.Item1.Count; i++) {
+                                        if (canMoveTo.Exists(x => x.MapPosition == pathing.Item1[i].MapPosition)) {
+                                            farthest = i;
+                                        }
+                                        else
                                             break;
-                                        }
                                     }
-                                    if (!pause) {
-                                        if (listCanHit.Count > 0) {
-                                            target = listCanHit.OrderBy(x => x.Health).ToList().Last().Inhabited;
-                                            phase = states.AttackPhase1;
-                                            DrawEngine.AddPause(2f);
-                                            pause = true;
-                                        }
-                                        else {
-                                            Tuple<List<Tile>, bool> pathing = World.Path2(canMoveTo, 100, turnMaster.Inhabited, allEnemies.OrderBy(x => World.Distance(x.MapPosition, turnMaster.MapPosition)).Last().Inhabited);
-                                            Console.WriteLine(pathing.Item2);
-                                            int farthest = 0;
-                                            for (int i = 0; i < pathing.Item1.Count; i++) {
-                                                if (World.SelectedTiles.Exists(x => x.MapPosition == pathing.Item1[i].MapPosition)) {
-                                                    farthest = i;
-                                                }
-                                            }
-                                            turnMaster.Inhabited.MoveInhabited(pathing.Item1[farthest]);
+                                    target = pathing.Item1[farthest];
+                                    canMoveTo.ForEach(x => DrawEngine.AddPermanent("selectedTiles", move, x.MapPosition, Vector2.Zero, 0.2f, 2, 0));
+                                    phase = states.MovePhase1;
+                                    DrawEngine.AddPause(2f);
+                                    pause = true;
 
-                                            canMoveTo.ForEach(x => DrawEngine.AddPermanent("selectedTiles", move, x.MapPosition, Vector2.Zero, 0.2f, 2, 0));
-                                            DrawEngine.AddPause(2f);
-                                            pause = true;
-                                        }
-                                    }
+
                                 }
                                 #endregion
                             }
                             #endregion
                         }
                         else {
-                            if (listCanHit.Count == 0) {
-                                canMoveTo.ForEach(x => DrawEngine.AddPermanent("selectedTiles", move, x.MapPosition, Vector2.Zero, 0.2f, 2, 0));
-                                DrawEngine.AddPause(2f);
-                                pause = true;
+                            #region Health under 1/3
+                            if (listCanHitMe.Count > 1) {
+                                for (int i = 0; i < canMoveTo.Count; i++) {
+                                    listCanHitMe.Clear();
+                                    allEnemies.ForEach(x => {
+                                        DrawEngine.ClearPermanent("selectedTiles");
+                                        World.SelectedTiles.Clear();
+                                        x.Attack.PrepareSkill(x, World.Map, World.SelectedTiles);
+                                        if (World.SelectedTiles.Exists(y => y == canMoveTo[i]))
+                                            listCanHitMe.Add(x);
+                                        DrawEngine.ClearPermanent("selectedTiles");
+                                        World.SelectedTiles.Clear();
+                                    });
+                                    if (listCanHitMe.Count <= 1) {
+                                        canMoveTo.ForEach(x => DrawEngine.AddPermanent("selectedTiles", move, x.MapPosition, Vector2.Zero, 0.2f, 2, 0));
+                                        World.SelectedTiles = canMoveTo;
+                                        target = canMoveTo[i];
+                                        phase = states.MovePhase1;
+                                        DrawEngine.AddPause(2f);
+                                        pause = true;
+                                        break;
+                                    }
+                                }
                             }
+                            #endregion
                         }
                     }
                     //Paused

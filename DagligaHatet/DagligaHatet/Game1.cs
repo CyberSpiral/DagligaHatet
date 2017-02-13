@@ -163,9 +163,29 @@ namespace DagligaHatet {
 
             if (DrawEngine.QueuedAnimations.Count == 0 && DrawEngine.QueuedText.Count == 0) {
 
+                World.Map.Where(x => x.Inhabited).ToList().ForEach(x => {
+                    if (x.Inhabitant.Health <= 0) {
+                        DrawEngine.ClearPermanent(x.Inhabitant.Name);
+                        World.Order.Remove(x.Inhabitant.Name);
+                        x.RemoveInhabitor();
+                    }
+                });
+
+
+
+                if (World.OrderNumber >= World.Order.Count) {
+                    World.OrderNumber = 0;
+                }
+
+
                 PlayerCharacter turnMaster = World.Map.Find(x => x.Inhabited && x.Inhabitant.Name == World.Order[World.OrderNumber]).Inhabitant;
                 List<PlayerCharacter> allEnemies = new List<PlayerCharacter>();
                 World.Map.Where(x => x.Inhabited && x.Inhabitant.Alignment != turnMaster.Alignment).ToList().ForEach(x => allEnemies.Add(x.Inhabitant));
+                if (allEnemies.Count <= 0) {
+                    //Won or Lost
+                    throw new NotImplementedException();
+                }
+
 
                 #region Players
                 if (turnMaster.Alignment == 0) {
@@ -535,6 +555,13 @@ namespace DagligaHatet {
                                     }
                                 }
                             }
+                            else if (listCanHit.Count > 0) {
+                                turnMaster.Attack.PrepareSkill(turnMaster, World.Map, World.SelectedTiles);
+                                target = listCanHit.OrderBy(x => x.Health).Last().Inhabited;
+                                phase = states.AttackPhase1;
+                                DrawEngine.AddPause(2f);
+                                pause = true;
+                            }
                             #endregion
                         }
                     }
@@ -642,9 +669,6 @@ namespace DagligaHatet {
                 }
                 #endregion
 
-                if (World.OrderNumber >= World.Order.Count) {
-                    World.OrderNumber = 0;
-                }
             }
 
 

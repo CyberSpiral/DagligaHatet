@@ -9,6 +9,8 @@ using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace DagligaHatet {
 
@@ -31,6 +33,7 @@ namespace DagligaHatet {
         public int MaxHealth { get; }
         public int Health { get; set; }
         public int Alignment { get; }
+        public List<Tile> SelectedTiles { get; set; }
 
         public Attack Attack { get; }
         public int Damage { get; }
@@ -39,6 +42,7 @@ namespace DagligaHatet {
         public Skill Skill { get; }
         public int SkillRange { get; set; }
         public int SkillDamage { get; }
+        public float Rotation { get; set; }
 
 
         /// <summary>
@@ -66,7 +70,16 @@ namespace DagligaHatet {
             Skill = skill;
             SkillRange = skillRange;
             SkillDamage = skillDamage;
+            Rotation = 0;
+            SelectedTiles = new List<Tile>();
         }
+
+        public void Draw(SpriteBatch sB) {
+            if (!DrawEngine.QueuedAnimations.Exists(x => x.Name == Name)) {
+                sB.Draw(Texture, World.TranslateMapPosition(MapPosition), null, Color.White, Rotation, Vector2.Zero, 1, SpriteEffects.None, 0.9f);
+            }
+        }
+        
     }
 
 }

@@ -11,9 +11,8 @@ namespace DagligaHatet {
 
     static class World {
         public static List<Tile> Map { get; } = new List<Tile>();
-        public static List<Tile> SelectedTiles { get; set; } = new List<Tile>();
-
-        public static List<string> Order { get; } = new List<string>();
+        public static List<PlayerCharacter> AllCharacters { get; } = new List<PlayerCharacter>();
+        
         public static int OrderNumber { get; set; } = 0;
 
 
@@ -27,46 +26,46 @@ namespace DagligaHatet {
             Tile tempTile;
 
             tempTile = GetTile(new Vector2(1, 3));
-            Order.Add("Knight");
             tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("Knight1"), "Knight", new AttackMelee(content.Load<Texture2D>("Sword"),
                 content.Load<Texture2D>("Cross")), 3 /*Range*/, 3 /*Damage*/, new SkillKnightWhirlwind(content.Load<Texture2D>("Sword"),
                 content.Load<Texture2D>("WhirlwindAni")), 2 /*Skill Range*/, 2 /*Skill Damage*/, 4 /*Movement Speedu*/, 10 /*Health*/, 0/*Alignment*/));
             DrawEngine.AddPermanent(tempTile.Inhabitant.Name, tempTile.Inhabitant.Texture, tempTile.MapPosition, 0.5f);
+            AllCharacters.Add(tempTile.Inhabitant);
 
-            tempTile = GetTile(new Vector2(7, 9));
-            Order.Add("S1");
+            tempTile = GetTile(new Vector2(9, 9));
             tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("S"), "S1", new AttackRangeCross(content.Load<Texture2D>("Sword"),
                 content.Load<Texture2D>("Cross")), 5/*Range*/, 3/*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")),
                 3 /*Skill Range*/, 2/*Skill Damage*/, 4/*Movement Speed*/, 14/*Health*/, 1/*Alignment*/));
             DrawEngine.AddPermanent(tempTile.Inhabitant.Name, tempTile.Inhabitant.Texture, tempTile.MapPosition, 0.5f);
+            AllCharacters.Add(tempTile.Inhabitant);
 
             tempTile = GetTile(new Vector2(3, 3));
-            Order.Add("Wizard");
             tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("Wizard1"), "Wizard", new AttackRangeCross(content.Load<Texture2D>("Sword"),
                 content.Load<Texture2D>("Cross")), 4 /*Range*/, 3 /*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")),
                 100 /*Skill Range*/, 3 /*Skill Damage*/, 5 /*Movement Speed*/, 10 /*Health*/, 0/*Alignment*/));
             DrawEngine.AddPermanent(tempTile.Inhabitant.Name, tempTile.Inhabitant.Texture, tempTile.MapPosition, 0.5f);
+            AllCharacters.Add(tempTile.Inhabitant);
 
             tempTile = GetTile(new Vector2(13, 10));
-            Order.Add("S2");
-            tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("S"), "S2", new AttackMelee(content.Load<Texture2D>("Sword"),
+            tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("S2"), "S2", new AttackMelee(content.Load<Texture2D>("Sword"),
                 content.Load<Texture2D>("Cross")), 3/*Range*/, 4/*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")),
                 3 /*Skill Range*/, 2/*Skill Damage*/, 3/*Movement Speed*/, 20/*Health*/, 1/*Alignment*/));
             DrawEngine.AddPermanent(tempTile.Inhabitant.Name, tempTile.Inhabitant.Texture, tempTile.MapPosition, 0.5f);
+            AllCharacters.Add(tempTile.Inhabitant);
 
             tempTile = GetTile(new Vector2(2, 4));
-            Order.Add("Ranger");
             tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("Ranger1"), "Ranger", new AttackRangeXCross(content.Load<Texture2D>("Sword"),
                 content.Load<Texture2D>("Cross")), 5 /*Range*/, 2 /*Damage*/, new SkillRangerBomb(content.Load<Texture2D>("Sword"),
                 content.Load<Texture2D>("Target")), 4 /*Skill Range*/, 3 /*Skill Damage*/, 6 /*Movement Speed*/, 13 /*Health*/, 0/*Alignment*/));
             DrawEngine.AddPermanent(tempTile.Inhabitant.Name, tempTile.Inhabitant.Texture, tempTile.MapPosition, 0.5f);
+            AllCharacters.Add(tempTile.Inhabitant);
 
-            tempTile = GetTile(new Vector2(10, 14));
-            Order.Add("S3");
-            tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("S"), "S3", new AttackRangeXCross(content.Load<Texture2D>("Sword"),
+            tempTile = GetTile(new Vector2(12, 12));
+            tempTile.AddInhabitor(new PlayerCharacter(content.Load<Texture2D>("S3"), "S3", new AttackRangeXCross(content.Load<Texture2D>("Sword"),
                 content.Load<Texture2D>("Cross")), 4/*Range*/, 4/*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")),
                 3 /*Skill Range*/, 2/*Skill Damage*/, 5/*Movement Speed*/, 8/*Health*/, 1/*Alignment*/));
             DrawEngine.AddPermanent(tempTile.Inhabitant.Name, tempTile.Inhabitant.Texture, tempTile.MapPosition, 0.5f);
+            AllCharacters.Add(tempTile.Inhabitant);
 
         }
 
@@ -174,6 +173,8 @@ namespace DagligaHatet {
 
         public static Tuple<List<Tile>, bool> Path2(List<Tile> acceptable, int distance, Tile start, Tile stop) {
             List<Flood> floodList = new List<Flood>();
+            acceptable.Add(start);
+            acceptable.Add(stop);
             Map.ForEach(x => {
                 if (acceptable.Contains(x))
                     floodList.Add(new Flood(x.MapPosition, 0));
@@ -318,12 +319,23 @@ namespace DagligaHatet {
         }
 
         public static void DoHealing(int heal, PlayerCharacter turnMaster, PlayerCharacter reciver) {
-            reciver.Health += heal;
-            Console.WriteLine("The {0} heals {1} for {2}, their health is now {3}", turnMaster.Name, heal, reciver.Name, reciver.Health);
-            Vector2 translated = TranslateMapPosition(reciver.MapPosition);
-            Vector2 origin = new Vector2(translated.X + 10, translated.Y + 10);
-            Vector2 goal = new Vector2(translated.X + 10, translated.Y - 20);
-            DrawEngine.AddDamageReport(string.Format("+{0}", heal), Color.ForestGreen, UnTranslateMapPosition(origin), 1f, false, UnTranslateMapPosition(goal));
+            int difference = reciver.MaxHealth - reciver.Health;
+            if (difference > heal) {
+                reciver.Health += heal;
+                Console.WriteLine("The {0} heals {1} for {2}, their health is now {3}", turnMaster.Name, reciver.Name, heal, reciver.Health);
+                Vector2 translated = TranslateMapPosition(reciver.MapPosition);
+                Vector2 origin = new Vector2(translated.X + 10, translated.Y + 10);
+                Vector2 goal = new Vector2(translated.X + 10, translated.Y - 20);
+                DrawEngine.AddDamageReport(string.Format("+{0}", heal), Color.ForestGreen, UnTranslateMapPosition(origin), 1f, false, UnTranslateMapPosition(goal));
+            }
+            else {
+                reciver.Health += difference;
+                Console.WriteLine("The {0} heals {1} for {2}, their health is now {3}", turnMaster.Name, reciver.Name, difference, reciver.Health);
+                Vector2 translated = TranslateMapPosition(reciver.MapPosition);
+                Vector2 origin = new Vector2(translated.X + 10, translated.Y + 10);
+                Vector2 goal = new Vector2(translated.X + 10, translated.Y - 20);
+                DrawEngine.AddDamageReport(string.Format("+{0}", difference), Color.ForestGreen, UnTranslateMapPosition(origin), 1f, false, UnTranslateMapPosition(goal));
+            }
         }
 
     }
@@ -378,7 +390,7 @@ namespace DagligaHatet {
         public void MoveInhabited(Tile target) {
             target.AddInhabitor(Inhabitant);
             DrawEngine.PermanentAnimations.Find(x => x.Name == Inhabitant.Name).Position = World.TranslateMapPosition(target.MapPosition);
-            Tuple<List<Tile>, bool> path = World.Path2(World.SelectedTiles, Inhabitant.MoveSpeed, this, target);
+            Tuple<List<Tile>, bool> path = World.Path2(Inhabitant.SelectedTiles, Inhabitant.MoveSpeed, this, target);
             if (path.Item2) {
                 for (int i = 0; i < path.Item1.Count - 1; i++) {
                     DrawEngine.AddQueued(Inhabitant.Name, Inhabitant.Texture, path.Item1[i].MapPosition, Vector2.Zero, 0.3f, false, path.Item1[i + 1].MapPosition);

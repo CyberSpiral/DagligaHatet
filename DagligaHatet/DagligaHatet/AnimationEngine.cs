@@ -62,6 +62,8 @@ namespace DagligaHatet {
         }
 
         static public void Draw(SpriteBatch spriteBatch, SpriteFont font) {
+            World.Board.Draw(spriteBatch, font);
+
             PermanentAnimations.Where(x => x.Animated).ToList().Where(x => !x.Hidden).ToList().ForEach(x => {
                 if (!QueuedAnimations.Exists(y => y.Name == x.Name)) {
                     int FrameWidth = x.Texture.Width / x.TotalFrames;
@@ -292,5 +294,46 @@ namespace DagligaHatet {
         public TextQueued(string name, Vector2 position, float expirationDate, int priority, Vector2 goal, Color color) : base(name, null, position, Vector2.Zero, expirationDate, priority, goal) {
             Color = color;
         }
+    }
+    class BillBoard {
+
+        private List<string> Pinned = new List<string>();
+        public Vector2 Position { get; }
+        public Vector2 TextPosition1 { get { return new Vector2(Position.X + 440, Position.Y + 15); } }
+        public Vector2 TextPosition2 { get { return new Vector2(Position.X + 440, Position.Y + 30); } }
+        private Texture2D texture;
+        private Texture2D painting;
+        private Texture2D dot;
+
+        public BillBoard(Texture2D texture, Texture2D art, Texture2D dot, Vector2 position) {
+            this.texture = texture;
+            painting = art;
+            this.dot = dot;
+            Position = position;
+            Pinned.Add("");
+            Pinned.Add("");
+        }
+
+        public void Pin(string text) {
+            Pinned.Add(text);
+            Pinned.Remove(Pinned.First());
+        }
+
+        public void Draw(SpriteBatch spriteBatch, SpriteFont font) {
+            spriteBatch.Draw(texture, Position, null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+            spriteBatch.DrawString(font, Pinned[0], TextPosition1, Color.Black, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
+            spriteBatch.DrawString(font, Pinned[1], TextPosition2, Color.Black, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
+
+            float spacing = 420 / World.AllCharacters.Count;
+            for (int i = 0; i < World.AllCharacters.Count; i++) {
+                spriteBatch.Draw(painting, new Vector2(Position.X + 15 + (spacing * i), Position.Y + 7), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.9f);
+                spriteBatch.Draw(World.AllCharacters[i].Texture, new Vector2(Position.X + 17 + (spacing * i), Position.Y + 9), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.5f);
+                spriteBatch.Draw(dot, new Rectangle((int)(Position.X + 17 + (spacing * i)), (int)Position.Y + 52, 40, 4), null, Color.Black, 0, Vector2.Zero, SpriteEffects.None, 0.9f);
+                float percent = (float)World.AllCharacters[i].Health / (float)World.AllCharacters[i].MaxHealth;
+                spriteBatch.Draw(dot, new Rectangle((int)(Position.X + 18 + (spacing * i)), (int)Position.Y + 53, (int)(38 * percent), 2), null, Color.Green, 0, Vector2.Zero, SpriteEffects.None, 0.8f);
+            }
+
+        }
+
     }
 }

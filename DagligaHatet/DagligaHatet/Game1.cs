@@ -63,10 +63,10 @@ namespace DagligaHatet {
         /// all of your content.
         /// </summary>
         protected override void LoadContent() {
-            moveButton = new Button(new Rectangle(120, 30, 100, 60), Content.Load<Texture2D>("Move"));
-            attackButton = new Button(new Rectangle(320, 30, 100, 60), Content.Load<Texture2D>("Attack"));
-            skillButton = new Button(new Rectangle(520, 30, 100, 60), Content.Load<Texture2D>("Skill"));
-            skipButton = new Button(new Rectangle(720, 30, 100, 60), Content.Load<Texture2D>("Skip"));
+            moveButton = new Button(new Rectangle(120, 10, 100, 60), Content.Load<Texture2D>("Move"));
+            attackButton = new Button(new Rectangle(320, 10, 100, 60), Content.Load<Texture2D>("Attack"));
+            skillButton = new Button(new Rectangle(520, 10, 100, 60), Content.Load<Texture2D>("Skill"));
+            skipButton = new Button(new Rectangle(720, 10, 100, 60), Content.Load<Texture2D>("Skip"));
             pause = false;
             Cross = Content.Load<Texture2D>("Cross");
 
@@ -161,7 +161,7 @@ namespace DagligaHatet {
                 OnClicked(EventArgs.Empty);
             }*/
 
-            if (DrawEngine.QueuedAnimations.Count == 0 && DrawEngine.QueuedText.Count == 0) {
+            if (DrawEngine.QueuedAnimations.Count == 0) {
 
                 World.Map.Where(x => x.Inhabited).ToList().ForEach(x => {
                     if (x.Inhabitant.Health <= 0) {
@@ -170,8 +170,6 @@ namespace DagligaHatet {
                         x.RemoveInhabitor();
                     }
                 });
-
-
 
                 if (World.OrderNumber >= World.AllCharacters.Count) {
                     World.OrderNumber = 0;
@@ -281,136 +279,9 @@ namespace DagligaHatet {
 
                 }
                 #endregion
+                
 
-                #region Emenies
-                /*else {
-                    while (true) {
-                        DrawEngine.ClearPermanent("selectedTiles");
-                        turnMaster.SelectedTiles.Clear();
-                        if (turnMaster.Health > (turnMaster.MaxHealth / 3)) {
-                            turnMaster.Attack.PrepareSkill(turnMaster, World.Map, turnMaster.SelectedTiles);
-                            Tuple<PlayerCharacter, bool> toHit = turnMaster.Attack.WouldHit(turnMaster, World.Map, turnMaster.SelectedTiles);
-                            if (toHit.Item2) {
-                                if (!pause) {
-                                    DrawEngine.AddPause(1f);
-                                    pause = true;
-                                    break;
-                                }
-                                else if (pause) {
-                                    turnMaster.Attack.InvokeSkill(turnMaster, World.Map, turnMaster.SelectedTiles, toHit.Item1.Inhabited);
-                                    DrawEngine.ClearPermanent("selectedTiles");
-                                    turnMaster.SelectedTiles.Clear();
-                                    pause = false;
-                                    break;
-                                }
-                            }
-                            else {
-                                if (!pause) {
-                                    DrawEngine.ClearPermanent("selectedTiles");
-                                    turnMaster.SelectedTiles.Clear();
-                                    turnMaster.SelectedTiles.AddRange(World.FloodPath(turnMaster.MoveSpeed, turnMaster.Inhabited));
-                                    turnMaster.SelectedTiles.RemoveAll(x => x.MapPosition == turnMaster.MapPosition);
-                                    turnMaster.SelectedTiles.RemoveAll(x => x.Inhabited);
-                                    turnMaster.SelectedTiles.ForEach(x => {
-                                        DrawEngine.AddPermanent("selectedTiles", move, x.MapPosition, Vector2.Zero, 0.2f, 2, 0);
-                                    });
-                                    DrawEngine.AddPause(1f);
-                                    pause = true;
-                                    break;
-                                }
-                                else if (pause) {
-                                    DrawEngine.ClearPermanent("selectedTiles");
-                                    turnMaster.SelectedTiles.Clear();
-                                    allEnemies = allEnemies.OrderBy(x => World.Distance(x.MapPosition, turnMaster.MapPosition)).ToList();
-                                    Tuple<List<Tile>, bool> pathing = World.Path(World.Map.Where(x => !x.Inhabited || (allEnemies.Last().Inhabited == x)).ToList(), 100, turnMaster.Inhabited, allEnemies.Last().Inhabited);
-                                    Console.WriteLine(pathing.Item2);
-                                    turnMaster.SelectedTiles.AddRange(World.FloodPath(turnMaster.MoveSpeed, turnMaster.Inhabited));
-                                    turnMaster.SelectedTiles.RemoveAll(x => x.MapPosition == turnMaster.MapPosition);
-                                    turnMaster.SelectedTiles.RemoveAll(x => x.Inhabited);
-                                    int farthest = 0;
-                                    for (int i = 0; i < pathing.Item1.Count; i++) {
-                                        if (turnMaster.SelectedTiles.Exists(x => x.MapPosition == pathing.Item1[i].MapPosition)) {
-                                            farthest = i;
-                                        }
-                                    }
-                                    turnMaster.Inhabited.MoveInhabited(pathing.Item1[farthest]);
-                                    DrawEngine.ClearPermanent("selectedTiles");
-                                    turnMaster.SelectedTiles.Clear();
-                                }
-                                pause = false;
-                                break;
-                            }
-                        }
-                        else if (turnMaster.Health < (turnMaster.MaxHealth / 3)) {
-                            if (!pause) {
-                                turnMaster.SelectedTiles.Clear();
-                                DrawEngine.ClearPermanent("selectedTiles");
-                                turnMaster.SelectedTiles.AddRange(World.FloodPath(turnMaster.MoveSpeed, turnMaster.Inhabited));
-                                turnMaster.SelectedTiles.RemoveAll(x => x.MapPosition == turnMaster.MapPosition);
-                                turnMaster.SelectedTiles.RemoveAll(x => x.Inhabited);
-                                turnMaster.SelectedTiles.ForEach(x => {
-                                    DrawEngine.AddPermanent("Move", move, x.MapPosition, Vector2.Zero, 0.2f, 2, 0);
-                                });
-                                DrawEngine.AddPause(1f);
-                                pause = true;
-                                break;
-                            }
-                            else if (pause) {
-                                List<int> distances = new List<int>();
-                                bool scared = false;
-                                allEnemies.ForEach(x => {
-                                    x.Attack.PrepareSkill(x, World.Map, turnMaster.SelectedTiles);
-                                    if (x.Attack.WouldHit(x, World.Map, turnMaster.SelectedTiles).Item2 == true) {
-                                        scared = true;
-                                    }
-                                    DrawEngine.ClearPermanent("selectedTiles");
-                                    turnMaster.SelectedTiles.Clear();
-                                });
-                                if (scared) {
-                                    Tile testTile = null;
-                                    Random r = new Random();
-                                    int c = 0;
-                                    while (scared) {
-                                        c++;
-                                        if (c >= 20)
-                                            throw new NotImplementedException();
-                                            //Scared
-                                        turnMaster.SelectedTiles.AddRange(World.FloodPath(turnMaster.MoveSpeed, turnMaster.Inhabited));
-                                        turnMaster.SelectedTiles.RemoveAll(x => x.MapPosition == turnMaster.MapPosition);
-                                        turnMaster.SelectedTiles.RemoveAll(x => x.Inhabited);
-                                        scared = false;
-                                        Tile oldTile = turnMaster.Inhabited;
-                                        testTile = turnMaster.SelectedTiles[r.Next(turnMaster.SelectedTiles.Count)];
-
-                                        allEnemies.ForEach(x => {
-                                            DrawEngine.ClearPermanent("selectedTiles");
-                                            turnMaster.SelectedTiles.Clear();
-                                            x.Attack.PrepareSkill(x, World.Map, turnMaster.SelectedTiles);
-                                            if (turnMaster.SelectedTiles.Exists(y => y == testTile))
-                                                scared = true;
-                                            DrawEngine.ClearPermanent("selectedTiles");
-                                            turnMaster.SelectedTiles.Clear();
-                                        });
-                                    }
-                                    turnMaster.SelectedTiles.AddRange(World.FloodPath(turnMaster.MoveSpeed, turnMaster.Inhabited));
-                                    turnMaster.Inhabited.MoveInhabited(testTile);
-                                    turnMaster.SelectedTiles.Clear();
-                                    DrawEngine.ClearPermanent("selectedTiles");
-                                    pause = false;
-                                    break;
-                                }
-                            }
-                        }
-                        break;
-                    }
-                    if (!pause) {
-                        World.OrderNumber++;
-                    }
-                }*/
-
-                #endregion
-
-                #region New 
+                #region Enmenies 
 
                 else {
                     Random r = new Random();
@@ -532,7 +403,7 @@ namespace DagligaHatet {
                         }
                         else {
                             #region Health under 1/3
-                            if (listCanHitMe.Count > 1) {
+                            if (listCanHitMe.Count > 2) {
                                 for (int i = 0; i < canMoveTo.Count; i++) {
                                     listCanHitMe.Clear();
                                     allEnemies.ForEach(x => {
@@ -562,7 +433,7 @@ namespace DagligaHatet {
                                 DrawEngine.AddPause(2f);
                                 pause = true;
                             }
-                            else if (canMoveTo.Count > 0) {
+                            else if (canMoveTo.Count > 0 && allFriendly.Count > 0) {
 
                                 Tuple<List<Tile>, bool> pathing = World.Path2(World.Map.Where(x => !x.Inhabited).ToList(), 100, turnMaster.Inhabited, allFriendly.OrderByDescending(x => World.Distance(x.MapPosition, turnMaster.MapPosition)).Last().Inhabited);
                                 Console.WriteLine(pathing.Item2);
@@ -609,81 +480,6 @@ namespace DagligaHatet {
                         }
                     }
 
-                    #region old
-                    /*else if (pause) {
-                        DrawEngine.ClearPermanent("selectedTiles");
-                        turnMaster.SelectedTiles.Clear();
-                        if (turnMaster.Health > turnMaster.MaxHealth / 3) {
-                            #region Health over 1/3
-                            if (listCanHitMe.Count > 2) {
-                                #region 3 Can hit me
-                                if (canMoveTo.Count > 0) {
-                                    #region Can move
-                                    for (int i = 0; i < canMoveTo.Count; i++) {
-                                        listCanHitMe.Clear();
-                                        allEnemies.ForEach(x => {
-                                            DrawEngine.ClearPermanent("selectedTiles");
-                                            turnMaster.SelectedTiles.Clear();
-                                            x.Attack.PrepareSkill(x, World.Map, turnMaster.SelectedTiles);
-                                            if (turnMaster.SelectedTiles.Exists(y => y == canMoveTo[i]))
-                                                listCanHitMe.Add(x);
-                                            DrawEngine.ClearPermanent("selectedTiles");
-                                            turnMaster.SelectedTiles.Clear();
-                                        });
-                                        if (listCanHitMe.Count <= 2) {
-                                            turnMaster.Inhabited.MoveInhabited(target);
-                                            pause = false;
-                                            break;
-                                        }
-                                    }
-                                    if (pause) {
-                                        if (listCanHit.Count > 0) {
-                                            turnMaster.Attack.InvokeSkill(turnMaster, World.Map, turnMaster.SelectedTiles, target);
-                                            pause = false;
-                                        }
-                                        else {
-                                            turnMaster.SelectedTiles = canMoveTo;
-                                            turnMaster.Inhabited.MoveInhabited(canMoveTo[r.Next(canMoveTo.Count)]);
-                                            pause = false;
-                                        }
-                                    }
-                                    #endregion
-                                }
-                                else {
-                                    #region Can't move
-                                    if (listCanHit.Count > 0) {
-                                        turnMaster.Attack.PrepareSkill(turnMaster, World.Map, turnMaster.SelectedTiles);
-                                        turnMaster.Attack.InvokeSkill(turnMaster, World.Map, turnMaster.SelectedTiles, listCanHit.OrderBy(x => x.Health).Last().Inhabited);
-                                        pause = false;
-                                    }
-                                    else {
-                                        //Skill
-                                    }
-                                    #endregion
-                                }
-
-                                //Move
-                                #endregion
-                            }
-                            else {
-                                #region Less than 3 can hit me
-
-                                #endregion
-                            }
-                            #endregion
-                        }
-                        else {
-                            #region Health under 1/3
-                            if (listCanHit.Count == 0) {
-                                canMoveTo.ForEach(x => DrawEngine.AddPermanent("selectedTiles", move, x.MapPosition, Vector2.Zero, 0.2f, 2, 0));
-                                DrawEngine.AddPause(2f);
-                                pause = true;
-                            }
-                            #endregion
-                        }
-                    }*/
-                    #endregion
-
                     if (!pause) {
                         turnMaster.SelectedTiles.Clear();
                         DrawEngine.ClearPermanent("selectedTiles");
@@ -717,11 +513,11 @@ namespace DagligaHatet {
             }*/
 
             for (int i = 0; i < World.AllCharacters.Count; i++) {
-                spriteBatch.Draw(Content.Load<Texture2D>("Art"), new Vector2(30, 200 + 50 * i), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
-                spriteBatch.Draw(World.AllCharacters[i].Texture, new Vector2(32, 202 + 50 * i), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.5f);
+                spriteBatch.Draw(Content.Load<Texture2D>("Art"), new Vector2(30, 180 + 50 * i), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                spriteBatch.Draw(World.AllCharacters[i].Texture, new Vector2(32, 182 + 50 * i), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0.5f);
             }
             if (World.OrderNumber < World.AllCharacters.Count) {
-                spriteBatch.Draw(Content.Load<Texture2D>("Circle"), new Vector2(30, 200 + 50 * World.OrderNumber), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
+                spriteBatch.Draw(Content.Load<Texture2D>("Circle"), new Vector2(30, 180 + 50 * World.OrderNumber), null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
             }
 
             World.Map.ForEach(x => x.Draw(spriteBatch, Content.Load<Texture2D>("Bushes and dirt_0"), 1));

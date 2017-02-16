@@ -15,10 +15,13 @@ namespace DagligaHatet {
     public class Button {
         public Texture2D Texture { get; }
         public Rectangle Hitbox { get; }
+        public string Name { get; }
+        public bool Hidden { get; set; } = false;
 
-        public Button(Rectangle hit, Texture2D tex) {
+        public Button(Rectangle hit, Texture2D tex, string name) {
             Texture = tex;
             Hitbox = hit;
+            Name = name;
         }
 
         public bool Update(MouseState currentMouse, MouseState oldMouse) {
@@ -28,19 +31,11 @@ namespace DagligaHatet {
             }
             return false;
         }
-    }
 
-    public class Selected {
-        public Texture2D Shade { get; }
-        public Vector2 Position { get; }
-        public Vector2 MapPosition { get; }
-
-        public Selected(Texture2D shade, Vector2 map, Vector2 pos) {
-            Shade = shade;
-            MapPosition = map;
-            Position = pos;
+        public void Draw(SpriteBatch sB) {
+            if (!Hidden) {
+                sB.Draw(Texture, Hitbox, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0);
+            }
         }
     }
-
-
 }

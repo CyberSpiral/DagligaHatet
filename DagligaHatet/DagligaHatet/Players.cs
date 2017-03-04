@@ -25,8 +25,6 @@ namespace DagligaHatet {
             Texture = tex;
             Name = name;
         }
-
-
     }
 
     public class Character : Object {
@@ -45,8 +43,10 @@ namespace DagligaHatet {
         public int SkillDamage { get; }
         public float Rotation { get; set; }
 
-        protected List<Character> allFriendly { get; set; } = new List<Character>();
-        public List<Character> allEnemies { get; set; } = new List<Character>();
+        protected List<Character> AllFriendly { get; set; } = new List<Character>();
+        public List<Character> AllEnemies { get; set; } = new List<Character>();
+
+        protected List<AnimatedTexture> Animations { get; } = new List<AnimatedTexture>();
 
 
         /// <summary>
@@ -76,50 +76,47 @@ namespace DagligaHatet {
             SkillDamage = skillDamage;
             Rotation = 0;
             SelectedTiles = new List<Tile>();
-            allEnemies = World.AllCharacters.Where(x => x.Alignment != Alignment).ToList();
-            allFriendly = World.AllCharacters.Where(x => x.Alignment == Alignment && x != this).ToList();
+            AllEnemies = World.AllCharacters.Where(x => x.Alignment != Alignment).ToList();
+            AllFriendly = World.AllCharacters.Where(x => x.Alignment == Alignment && x != this).ToList();
         }
 
-        public void Draw(SpriteBatch sB) {
+        public virtual void Draw(SpriteBatch sB) {
             if (!DrawEngine.QueuedAnimations.Exists(x => x.Name == Name)) {
                 sB.Draw(Texture, World.TranslateMapMiddleMapCoordinate(MapCoordinate), null, Color.White, Rotation, new Vector2(20, 20), 1, SpriteEffects.None, 0.9f);
             }
+            Animations.ForEach(x => x.Draw(sB));
         }
 
-        public virtual void Update() {
-            allEnemies = World.AllCharacters.Where(x => x.Alignment != Alignment).ToList();
-            allFriendly = World.AllCharacters.Where(x => x.Alignment == Alignment && x != this).ToList();
+        public virtual void Update(float elapsed) {
+            AllEnemies = World.AllCharacters.Where(x => x.Alignment != Alignment).ToList();
+            AllFriendly = World.AllCharacters.Where(x => x.Alignment == Alignment && x != this).ToList();
+            Animations.ForEach(x => x.Update(elapsed));
         }
 
     }
 
     public class Player : Character {
+
         public Player(Texture2D tex, string name, Attack attack, int range, int damage, Skill skill, int skillRange, int skillDamage, int movementSpeed, int health, int alignment)
             : base(tex, name, attack, range, damage, skill, skillRange, skillDamage, movementSpeed, health, alignment) {
         }
-
-
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="buttons">1. Move 2.Attack 3. Skill 4. Skip</param>
-        /// 
-        public override void Update() {
-            base.Update();
+        
+        public override void Update(float elapsed) {
+            base.Update(elapsed);
+            
             #region Players
             if (World.Buttons[0].Update(Mouse.GetState(), World.oldMouse)) {
+                SelectedTiles.Clear();
                 if (World.phase == states.ChoosePhase) {
-                    SelectedTiles.Clear();
                     SelectedTiles.AddRange(World.FloodPath(MoveSpeed, Inhabited));
                     SelectedTiles.RemoveAll(x => x.MapCoordinate == MapCoordinate);
                     SelectedTiles.RemoveAll(x => x.Inhabited);
+                    SelectedTiles.ForEach(x => Animations.Add(World.TheMould.Find(m => m.Name == "Move").BreakTheMould(World.TranslateMapCoordinate(x.MapCoordinate))));
                     World.Buttons.Where(x => !x.Name.Contains("move")).ToList().ForEach(x => x.Hidden = true);
                     World.phase = states.MovePhase1;
                 }
                 else if (World.phase == states.MovePhase1) {
-                    SelectedTiles.Clear();
+                    Animations.RemoveAll(x => x.Name == "Move");
                     World.Buttons.ForEach(x => x.Hidden = false);
                     World.phase = states.ChoosePhase;
                 }
@@ -127,13 +124,11 @@ namespace DagligaHatet {
 
             if (World.Buttons[1].Update(Mouse.GetState(), World.oldMouse)) {
                 if (World.phase == states.ChoosePhase) {
-                    SelectedTiles.Clear();
-                    Attack.PrepareSkill(this, World.Map, SelectedTiles);
+                    Attack.PrepareSkill(this, World.Map, SelectedTiles, Animations);
                     World.Buttons.Where(x => !x.Name.Contains("attack")).ToList().ForEach(x => x.Hidden = true);
                     World.phase = states.AttackPhase1;
                 }
                 else if (World.phase == states.AttackPhase1) {
-                    SelectedTiles.Clear();
                     World.Buttons.ForEach(x => x.Hidden = false);
                     World.phase = states.ChoosePhase;
                 }
@@ -141,20 +136,17 @@ namespace DagligaHatet {
 
             if (World.Buttons[2].Update(Mouse.GetState(), World.oldMouse)) {
                 if (World.phase == states.ChoosePhase) {
-                    SelectedTiles.Clear();
-                    Skill.PrepareSkill(this, World.Map, SelectedTiles);
+                    Skill.PrepareSkill(this, World.Map, SelectedTiles, Animations);
                     World.Buttons.Where(x => !x.Name.Contains("skill")).ToList().ForEach(x => x.Hidden = true);
                     World.phase = states.SkillPhase1;
                 }
                 else if (World.phase == states.SkillPhase1) {
-                    SelectedTiles.Clear();
                     World.Buttons.ForEach(x => x.Hidden = false);
                     World.phase = states.ChoosePhase;
                 }
             }
             if (World.Buttons[3].Update(Mouse.GetState(), World.oldMouse)) {
                 if (World.phase == states.ChoosePhase) {
-                    SelectedTiles.Clear();
                     World.OrderNumber++;
                     World.phase = states.ChoosePhase;
                 }
@@ -169,8 +161,7 @@ namespace DagligaHatet {
                     if (World.phase == states.MovePhase1) {
                         Inhabited.MoveInhabited(clickedTile);
                         World.Buttons.ForEach(x => x.Hidden = false);
-                        SelectedTiles.Clear();
-
+                        Animations.RemoveAll(x => x.Name == "Move");
                         //Round over/Move over
                         World.phase = states.ChoosePhase;
                         World.OrderNumber++;
@@ -188,13 +179,18 @@ namespace DagligaHatet {
                         World.Buttons.ForEach(x => x.Hidden = false);
                         World.OrderNumber++;
                     }
+                    SelectedTiles.Clear();
                 }
             }
-
 
             #endregion
 
         }
+
+        public override void Draw(SpriteBatch sB) {
+            base.Draw(sB);
+        }
+
     }
 
     public class Evil : Character {
@@ -211,8 +207,8 @@ namespace DagligaHatet {
 
         }
 
-        public override void Update() {
-            base.Update();
+        public override void Update(float elapsed) {
+            base.Update(elapsed);
             #region Enmenies 
 
             Random r = new Random();
@@ -220,7 +216,7 @@ namespace DagligaHatet {
 
             SelectedTiles.Clear();
             ListCanHitMe = new List<Character>();
-            allEnemies.ForEach(x => {
+            AllEnemies.ForEach(x => {
                 if (x.Attack.WouldHit(x, World.Map, SelectedTiles).Item1.Contains(this)) {
                     ListCanHitMe.Add(x);
                 }
@@ -241,10 +237,10 @@ namespace DagligaHatet {
                             #region Can move
                             for (int i = 0; i < CanMoveTo.Count; i++) {
                                 ListCanHitMe.Clear();
-                                allEnemies.ForEach(x => {
+                                AllEnemies.ForEach(x => {
 
                                     SelectedTiles.Clear();
-                                    x.Attack.PrepareSkill(x, World.Map, SelectedTiles);
+                                    x.Attack.PrepareSkill(x, World.Map, SelectedTiles, Animations);
                                     if (SelectedTiles.Exists(y => y == CanMoveTo[i]))
                                         ListCanHitMe.Add(x);
 
@@ -262,7 +258,7 @@ namespace DagligaHatet {
                             }
                             if (!Step) {
                                 if (ListCanHit.Count > 0) {
-                                    Attack.PrepareSkill(this, World.Map, SelectedTiles);
+                                    Attack.PrepareSkill(this, World.Map, SelectedTiles, Animations);
                                     target = ListCanHit.OrderBy(x => x.Health).First().Inhabited;
                                     World.phase = states.AttackPhase1;
                                     DrawEngine.AddPause(2f);
@@ -282,7 +278,7 @@ namespace DagligaHatet {
                         else {
                             #region Can't move
                             if (ListCanHit.Count > 0) {
-                                Attack.PrepareSkill(this, World.Map, SelectedTiles);
+                                Attack.PrepareSkill(this, World.Map, SelectedTiles, Animations);
                                 target = ListCanHit.OrderBy(x => x.Health).ToList().First().Inhabited;
                                 World.phase = states.AttackPhase1;
                                 DrawEngine.AddPause(2f);
@@ -299,7 +295,7 @@ namespace DagligaHatet {
                         #region Less than 3 can hit me
                         if (ListCanHit.Count > 0) {
                             #region Can hit someone
-                            Attack.PrepareSkill(this, World.Map, SelectedTiles);
+                            Attack.PrepareSkill(this, World.Map, SelectedTiles, Animations);
                             target = ListCanHit.OrderBy(x => x.Health).ToList().First().Inhabited;
                             World.phase = states.AttackPhase1;
                             DrawEngine.AddPause(2f);
@@ -308,7 +304,7 @@ namespace DagligaHatet {
                         }
                         else if (CanMoveTo.Count > 0) {
 
-                            Tuple<List<Tile>, bool> pathing = World.Path2(World.Map.Where(x => !x.Inhabited || (allEnemies.OrderByDescending(h => World.Distance(h.MapCoordinate, MapCoordinate)).Last().Inhabited == x)).ToList(), 100, Inhabited, allEnemies.OrderByDescending(x => World.Distance(x.MapCoordinate, MapCoordinate)).Last().Inhabited);
+                            Tuple<List<Tile>, bool> pathing = World.Path2(World.Map.Where(x => !x.Inhabited || (AllEnemies.OrderByDescending(h => World.Distance(h.MapCoordinate, MapCoordinate)).Last().Inhabited == x)).ToList(), 100, Inhabited, AllEnemies.OrderByDescending(x => World.Distance(x.MapCoordinate, MapCoordinate)).Last().Inhabited);
                             Console.WriteLine(pathing.Item2);
                             pathing.Item1.RemoveAt(0);
                             pathing.Item1.Remove(pathing.Item1.Last());
@@ -337,10 +333,10 @@ namespace DagligaHatet {
                     if (ListCanHitMe.Count > 2) {
                         for (int i = 0; i < CanMoveTo.Count; i++) {
                             ListCanHitMe.Clear();
-                            allEnemies.ForEach(x => {
+                            AllEnemies.ForEach(x => {
 
                                 SelectedTiles.Clear();
-                                x.Attack.PrepareSkill(x, World.Map, SelectedTiles);
+                                x.Attack.PrepareSkill(x, World.Map, SelectedTiles, Animations);
                                 if (SelectedTiles.Exists(y => y == CanMoveTo[i]))
                                     ListCanHitMe.Add(x);
 
@@ -358,16 +354,16 @@ namespace DagligaHatet {
                         }
                     }
                     else if (ListCanHit.Count > 0) {
-                        Attack.PrepareSkill(this, World.Map, SelectedTiles);
+                        Attack.PrepareSkill(this, World.Map, SelectedTiles, Animations);
                         target = ListCanHit.OrderBy(x => x.Health).First().Inhabited;
                         World.phase = states.AttackPhase1;
                         DrawEngine.AddPause(2f);
                         Step = true;
                     }
-                    else if (CanMoveTo.Count > 0 && allFriendly.Count > 0) {
+                    else if (CanMoveTo.Count > 0 && AllFriendly.Count > 0) {
 
                         Tuple<List<Tile>, bool> pathing = World.Path2(World.Map.Where(x => !x.Inhabited).ToList(), 100, Inhabited, 
-                            allFriendly.OrderByDescending(x => World.Distance(x.MapCoordinate, MapCoordinate)).Last().Inhabited);
+                            AllFriendly.OrderByDescending(x => World.Distance(x.MapCoordinate, MapCoordinate)).Last().Inhabited);
                         Console.WriteLine(pathing.Item2);
                         pathing.Item1.RemoveAt(0);
                         pathing.Item1.Remove(pathing.Item1.Last());

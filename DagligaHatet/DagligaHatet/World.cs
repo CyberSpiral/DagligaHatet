@@ -24,6 +24,8 @@ namespace DagligaHatet {
         /// </summary>
         public static List<Button> Buttons { get; set; } = new List<Button>();
 
+        public static List<AnimatedTextureMould> TheMould = new List<AnimatedTextureMould>();
+
         public static int OrderNumber { get; set; } = 0;
 
 
@@ -44,6 +46,8 @@ namespace DagligaHatet {
             Buttons.Add(attackButton);
             Buttons.Add(skillButton);
             Buttons.Add(skipButton);
+
+            TheMould.Add(new AnimatedTextureMould(content.Load<Texture2D>("MoveAni"), "Move", Vector2.Zero, 0, 0, 2, 0.4f));
 
             Tile tempTile;
 
@@ -347,6 +351,9 @@ namespace DagligaHatet {
                 for (int i = 0; i < path.Item1.Count - 1; i++) {
                     DrawEngine.AddQueued(Inhabitant.Name, Inhabitant.Texture, path.Item1[i].MapCoordinate, new Vector2(20, 20), 0.3f, false, path.Item1[i + 1].MapCoordinate);
                 }
+                Vector2 goal = World.TranslateMapCoordinate(target.MapCoordinate);
+                Vector2 position = World.TranslateMapCoordinate(path.Item1[path.Item1.Count - 2].MapCoordinate);
+                target.Inhabitant.Rotation = (float)Math.Atan2(goal.Y - position.Y, goal.X - position.X);
             }
             RemoveInhabitor();
         }

@@ -23,7 +23,7 @@ namespace DagligaHatet {
         SpriteFont GothicFont;
         public static Texture2D Cross;
         
-        Texture2D move;
+        public static Texture2D Move;
 
         public Game1() {
             graphics = new GraphicsDeviceManager(this);
@@ -54,7 +54,7 @@ namespace DagligaHatet {
 
             Cross = Content.Load<Texture2D>("Cross");
             GothicFont = Content.Load<SpriteFont>("Gothic");
-            move = Content.Load<Texture2D>("MoveAni");
+            Move = Content.Load<Texture2D>("MoveAni");
 
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -155,8 +155,8 @@ namespace DagligaHatet {
 
                 var turnMaster = World.AllCharacters[World.OrderNumber];
 
-                turnMaster.Update();
-                if (turnMaster.allEnemies.Count <= 0) {
+                turnMaster.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+                if (turnMaster.AllEnemies.Count <= 0) {
                     //Won or Lost
                     throw new NotImplementedException();
                 }

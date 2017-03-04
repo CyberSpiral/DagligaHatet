@@ -125,7 +125,7 @@ namespace DagligaHatet {
         }*/
 
     }
-    class AnimationClassQueued {
+    public class AnimationClassQueued {
         public float TotalElapsed { get; set; } = 0;
         public int Frame { get; set; } = 0;
         public float TimePerFrame { get; }
@@ -225,14 +225,13 @@ namespace DagligaHatet {
             Name = "Pause";
         }
     }
-    class TextQueued : AnimationClassQueued {
+    public class TextQueued : AnimationClassQueued {
         public Color Color { get; }
         public TextQueued(string name, Vector2 position, float expirationDate, int priority, Vector2 goal, Color color) : base(name, null, position, Vector2.Zero, expirationDate, priority, goal) {
             Color = color;
         }
     }
-    class BillBoard {
-
+    public class BillBoard {
         private List<string> Pinned = new List<string>();
         public Vector2 Position { get; }
         public Vector2 TextPosition1 { get { return new Vector2(Position.X + 440, Position.Y + 15); } }
@@ -271,5 +270,73 @@ namespace DagligaHatet {
 
         }
 
+    }
+    public class AnimatedTextureMould {
+        public float TimePerFrame { get; }
+        public int TotalFrames { get; }
+        public float Layer { get; }
+
+        public string Name { get; }
+        public Texture2D Texture { get; }
+        public Vector2 Origin { get; }
+
+        public bool Reversed { get; set; }
+        public float Rotation { get; set; }
+
+        public AnimatedTextureMould (Texture2D texture, string name, Vector2 origin, float rotation, float layer, int totalFrames, float timePerFrame) {
+            Texture = texture;
+            Name = name;
+            Origin = origin;
+            Rotation = rotation;
+            Layer = layer;
+            TotalFrames = totalFrames;
+            TimePerFrame = timePerFrame;
+        }
+        public AnimatedTexture BreakTheMould(Vector2 position) {
+            return new AnimatedTexture(Texture, Name, position, Origin, Rotation, Layer, TotalFrames, TimePerFrame);
+        }
+    }
+    public class AnimatedTexture {
+        public float TotalElapsed { get; set; } = 0;
+        public int Frame { get; set; } = 0;
+        public float TimePerFrame { get; }
+        public int TotalFrames { get; }
+        public float Layer { get; }
+
+        public string Name { get; }
+        public Texture2D Texture { get; }
+        public Vector2 Position { get; set; }
+        public Vector2 Origin { get; }
+        
+        public bool Reversed { get; set; }
+        public float Rotation { get; set; }
+
+        public AnimatedTexture(Texture2D texture, string name, Vector2 position, Vector2 origin, float rotation, float layer, int totalFrames, float timePerFrame) {
+            Texture = texture;
+            Name = name;
+            Position = position;
+            Origin = origin;
+            Rotation = rotation;
+            Layer = layer;
+            TotalFrames = totalFrames;
+            TimePerFrame = timePerFrame;
+        }
+
+        public void Update(float elapsed) {
+            TotalElapsed += elapsed;
+            if (TotalElapsed > TimePerFrame) {
+                Frame++;
+                Frame = Frame % TotalFrames;
+                TotalElapsed -= TimePerFrame;
+            }
+        }
+
+        public void Draw(SpriteBatch spriteBatch) {
+            int FrameWidth = Texture.Width / TotalFrames;
+            Rectangle sourcerect = new Rectangle(FrameWidth * Frame, 0,
+                FrameWidth, Texture.Height);
+            spriteBatch.Draw(Texture, Position, sourcerect, Color.White,
+                Rotation, Origin, 1, SpriteEffects.None, 0);
+        }
     }
 }

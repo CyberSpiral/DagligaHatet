@@ -15,9 +15,11 @@ namespace DagligaHatet {
             this.selectedTile = selectedTile;
         }
 
-        public abstract void PrepareSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles);
+        public abstract void PrepareSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles, List<AnimatedTexture> animations);
 
         public abstract void InvokeSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles, Tile clickedTile);
+
+        public abstract void RemoveTargets(List<AnimatedTexture> animations);
 
     }
 
@@ -33,7 +35,7 @@ namespace DagligaHatet {
             this.cross = cross;
         }
 
-        public override void PrepareSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles) {
+        public override void PrepareSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles, List<AnimatedTexture> animations) {
         }
 
         public override void InvokeSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles, Tile clickedTile) {
@@ -55,6 +57,10 @@ namespace DagligaHatet {
             }
             return new Tuple<List<Character>, bool>(new List<Character>(), false);
         }
+
+        public override void RemoveTargets(List<AnimatedTexture> animations) {
+            throw new NotImplementedException();
+        }
     }
 
     public class AttackMelee : Attack {
@@ -62,14 +68,17 @@ namespace DagligaHatet {
 
         }
 
-        public override void PrepareSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles) {
+        public override void PrepareSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles, List<AnimatedTexture> animations) {
             selectedTiles.AddRange(map.Where(x => (World.Distance(x.MapCoordinate, turnMaster.MapCoordinate)) < turnMaster.Range));
             selectedTiles.RemoveAll(x => x.MapCoordinate == turnMaster.MapCoordinate);
-            base.PrepareSkill(turnMaster, map, selectedTiles);
+            selectedTiles.ForEach(x => {
+                if (x.Inhabited) animations.Add(new AnimatedTexture(selectedTile, "Selected Tiles", World.TranslateMapCoordinate(x.MapCoordinate), Vector2.Zero, 0, 0, 1, 10000));
+                else animations.Add(new AnimatedTexture(cross, "Crossed Tiles", World.TranslateMapCoordinate(x.MapCoordinate), Vector2.Zero, 0, 0, 1, 10000));
+            });
         }
 
         public override Tuple<List<Character>, bool> WouldHit(Character turnMaster, List<Tile> map, List<Tile> selectedTiles) {
-            PrepareSkill(turnMaster, map, selectedTiles);
+            PrepareSkill(turnMaster, map, selectedTiles, new List<AnimatedTexture>());
             Tuple<List<Character>, bool> returnedData = base.WouldHit(turnMaster, map, selectedTiles);
             selectedTiles.Clear();
 
@@ -82,15 +91,18 @@ namespace DagligaHatet {
 
         }
 
-        public override void PrepareSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles) {
+        public override void PrepareSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles, List<AnimatedTexture> animations) {
             selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapCoordinate.X - turnMaster.MapCoordinate.X) < turnMaster.Range && x.MapCoordinate.Y == turnMaster.MapCoordinate.Y ||
                                 Math.Abs(x.MapCoordinate.Y - turnMaster.MapCoordinate.Y) < turnMaster.Range && x.MapCoordinate.X == turnMaster.MapCoordinate.X));
 
             selectedTiles.RemoveAll(x => x.MapCoordinate == turnMaster.MapCoordinate);
-            base.PrepareSkill(turnMaster, map, selectedTiles);
+            selectedTiles.ForEach(x => {
+                if (x.Inhabited) animations.Add(new AnimatedTexture(selectedTile, "Selected Tiles", World.TranslateMapCoordinate(x.MapCoordinate), Vector2.Zero, 0, 0, 1, 10000));
+                else animations.Add(new AnimatedTexture(cross, "Crossed Tiles", World.TranslateMapCoordinate(x.MapCoordinate), Vector2.Zero, 0, 0, 1, 10000));
+            });
         }
         public override Tuple<List<Character>, bool> WouldHit(Character turnMaster, List<Tile> map, List<Tile> selectedTiles) {
-            PrepareSkill(turnMaster, map, selectedTiles);
+            PrepareSkill(turnMaster, map, selectedTiles, new List<AnimatedTexture>());
             Tuple<List<Character>, bool> returnedData = base.WouldHit(turnMaster, map, selectedTiles);
             selectedTiles.Clear();
 
@@ -106,7 +118,7 @@ namespace DagligaHatet {
             this.arrow = arrow;
         }
 
-        public override void PrepareSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles) {
+        public override void PrepareSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles, List<AnimatedTexture> animations) {
             selectedTiles.AddRange(map.Where(x => Math.Abs(x.MapCoordinate.X - turnMaster.MapCoordinate.X) < turnMaster.Range &&
                                 x.MapCoordinate.Y == turnMaster.MapCoordinate.Y ||
                                 Math.Abs(x.MapCoordinate.Y - turnMaster.MapCoordinate.Y) < turnMaster.Range &&
@@ -115,10 +127,13 @@ namespace DagligaHatet {
             World.Distance(x.MapCoordinate, turnMaster.MapCoordinate) < turnMaster.Range * 1.2));
 
             selectedTiles.RemoveAll(x => x.MapCoordinate == turnMaster.MapCoordinate);
-            base.PrepareSkill(turnMaster, map, selectedTiles);
+            selectedTiles.ForEach(x => {
+                if (x.Inhabited) animations.Add(new AnimatedTexture(selectedTile, "Selected Tiles", World.TranslateMapCoordinate(x.MapCoordinate), Vector2.Zero, 0, 0, 1, 10000));
+                else animations.Add(new AnimatedTexture(cross, "Crossed Tiles", World.TranslateMapCoordinate(x.MapCoordinate), Vector2.Zero, 0, 0, 1, 10000));
+            });
         }
         public override Tuple<List<Character>, bool> WouldHit(Character turnMaster, List<Tile> map, List<Tile> selectedTiles) {
-            PrepareSkill(turnMaster, map, selectedTiles);
+            PrepareSkill(turnMaster, map, selectedTiles, new List<AnimatedTexture>());
             Tuple<List<Character>, bool> returnedData = base.WouldHit(turnMaster, map, selectedTiles);
             selectedTiles.Clear();
             return returnedData;
@@ -141,7 +156,7 @@ namespace DagligaHatet {
 
         }
 
-        public override void PrepareSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles) {
+        public override void PrepareSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles, List<AnimatedTexture> animations) {
 
             selectedTiles.AddRange(map.Where(x => x.Inhabited == true &&
             World.Distance(x.MapCoordinate, turnMaster.MapCoordinate) < turnMaster.SkillRange));
@@ -169,7 +184,7 @@ namespace DagligaHatet {
             this.ex = ex;
         }
 
-        public override void PrepareSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles) {
+        public override void PrepareSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles, List<AnimatedTexture> animations) {
             selectedTiles.AddRange(map.Where(x => (x.MapCoordinate.Y == turnMaster.MapCoordinate.Y ||
                                 x.MapCoordinate.X == turnMaster.MapCoordinate.X) &&
                                 (Math.Abs(x.MapCoordinate.X - turnMaster.MapCoordinate.X) +
@@ -204,7 +219,7 @@ namespace DagligaHatet {
         Texture2D whirl;
         public SkillKnightWhirlwind(Texture2D selectedTile, Texture2D Whirlwind) : base(selectedTile) { whirl = Whirlwind; }
 
-        public override void PrepareSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles) {
+        public override void PrepareSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles, List<AnimatedTexture> animations) {
             selectedTiles.AddRange(map.Where(x => World.Distance(x.MapCoordinate, turnMaster.MapCoordinate) < turnMaster.SkillRange));
 
             selectedTiles.RemoveAll(x => x.MapCoordinate == turnMaster.MapCoordinate);

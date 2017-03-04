@@ -88,6 +88,7 @@ namespace DagligaHatet {
                 3 /*Skill Range*/, 2/*Skill Damage*/, 5/*Movement Speed*/, 10/*Health*/, 1/*Alignment*/));
             AllCharacters.Add(tempTile.Inhabitant);
 
+
             var rnd = new Random();
             AllCharacters = AllCharacters.OrderBy(x => rnd.Next()).ToList();
         }
@@ -117,6 +118,10 @@ namespace DagligaHatet {
         /// <returns>Your mapcoordinate</returns>
         public static Vector2 TranslatePosition(Vector2 Position) {
             return new Vector2((Position.X - 100) / 40, (Position.Y - 80) / 40);
+        }
+
+        public static float GetRotation(Vector2 pos1, Vector2 pos2) {
+            return (float)Math.Atan2(pos2.Y - pos1.Y, pos2.X - pos1.X);
         }
 
         public static Tile GetTile(Vector2 mapPosition) {
@@ -270,8 +275,8 @@ namespace DagligaHatet {
             Console.WriteLine("The {0} does {1} damage to the {2}, their health is now {3}", turnMaster.Name, damage, reciver.Name, reciver.Health);
             World.Board.Pin(string.Format("The {0} does {1} damage to the {2}, their health is now {3}", turnMaster.Name, damage, reciver.Name, reciver.Health));
             Vector2 translated = TranslateMapCoordinate(reciver.MapCoordinate);
-            Vector2 origin = new Vector2(translated.X + 10, translated.Y + 10);
-            Vector2 goal = new Vector2(translated.X + 10, translated.Y - 20);
+            Vector2 origin = new Vector2(translated.X - 10, translated.Y - 10);
+            Vector2 goal = new Vector2(translated.X - 10, translated.Y - 20);
             DrawEngine.AddDamageReport(string.Format("-{0}", damage), Color.Red, TranslatePosition(origin), 1f, false, TranslatePosition(goal));
         }
         public static void DoHealing(int heal, Character turnMaster, Character reciver) {
@@ -281,8 +286,8 @@ namespace DagligaHatet {
                 Console.WriteLine("The {0} heals the {1} for {2}, their health is now {3}", turnMaster.Name, reciver.Name, heal, reciver.Health);
                 World.Board.Pin(string.Format("The {0} heals {1} for {2}, their health is now {3}", turnMaster.Name, reciver.Name, heal, reciver.Health));
                 Vector2 translated = TranslateMapCoordinate(reciver.MapCoordinate);
-                Vector2 origin = new Vector2(translated.X + 10, translated.Y + 10);
-                Vector2 goal = new Vector2(translated.X + 10, translated.Y - 20);
+                Vector2 origin = new Vector2(translated.X - 10, translated.Y - 10);
+                Vector2 goal = new Vector2(translated.X - 10, translated.Y - 20);
                 DrawEngine.AddDamageReport(string.Format("+{0}", heal), Color.ForestGreen, TranslatePosition(origin), 1f, false, TranslatePosition(goal));
             }
             else {
@@ -290,8 +295,8 @@ namespace DagligaHatet {
                 Console.WriteLine("The {0} heals {1} for {2}, their health is now {3}", turnMaster.Name, reciver.Name, difference, reciver.Health);
                 World.Board.Pin(string.Format("The {0} heals the {1} for {2}, their health is now {3}", turnMaster.Name, reciver.Name, difference, reciver.Health));
                 Vector2 translated = TranslateMapCoordinate(reciver.MapCoordinate);
-                Vector2 origin = new Vector2(translated.X + 10, translated.Y + 10);
-                Vector2 goal = new Vector2(translated.X + 10, translated.Y - 20);
+                Vector2 origin = new Vector2(translated.X - 10, translated.Y - 10);
+                Vector2 goal = new Vector2(translated.X - 10, translated.Y - 20);
                 DrawEngine.AddDamageReport(string.Format("+{0}", difference), Color.ForestGreen, TranslatePosition(origin), 1f, false, TranslatePosition(goal));
             }
         }

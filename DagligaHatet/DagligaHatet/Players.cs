@@ -106,7 +106,6 @@ namespace DagligaHatet {
             
             #region Players
             if (World.Buttons[0].Update(Mouse.GetState(), World.oldMouse)) {
-                SelectedTiles.Clear();
                 if (World.phase == states.ChoosePhase) {
                     SelectedTiles.AddRange(World.FloodPath(MoveSpeed, Inhabited));
                     SelectedTiles.RemoveAll(x => x.MapCoordinate == MapCoordinate);
@@ -117,6 +116,7 @@ namespace DagligaHatet {
                 }
                 else if (World.phase == states.MovePhase1) {
                     Animations.RemoveAll(x => x.Name == "Move");
+                    SelectedTiles.Clear();
                     World.Buttons.ForEach(x => x.Hidden = false);
                     World.phase = states.ChoosePhase;
                 }
@@ -129,6 +129,8 @@ namespace DagligaHatet {
                     World.phase = states.AttackPhase1;
                 }
                 else if (World.phase == states.AttackPhase1) {
+                    Attack.RemoveTargets(Animations);
+                    SelectedTiles.Clear();
                     World.Buttons.ForEach(x => x.Hidden = false);
                     World.phase = states.ChoosePhase;
                 }
@@ -141,6 +143,8 @@ namespace DagligaHatet {
                     World.phase = states.SkillPhase1;
                 }
                 else if (World.phase == states.SkillPhase1) {
+                    Skill.RemoveTargets(Animations);
+                    SelectedTiles.Clear();
                     World.Buttons.ForEach(x => x.Hidden = false);
                     World.phase = states.ChoosePhase;
                 }
@@ -167,14 +171,14 @@ namespace DagligaHatet {
                         World.OrderNumber++;
                     }
                     else if (World.phase == states.AttackPhase1 && clickedTile.Inhabited == true) {
-                        Attack.InvokeSkill(this, World.Map, SelectedTiles, clickedTile);
+                        Attack.InvokeSkill(this, World.Map, SelectedTiles, clickedTile, Animations);
                         //Round over/Attack over
                         World.phase = states.ChoosePhase;
                         World.Buttons.ForEach(x => x.Hidden = false);
                         World.OrderNumber++;
                     }
                     else if (World.phase == states.SkillPhase1) {
-                        Skill.InvokeSkill(this, World.Map, SelectedTiles, clickedTile);
+                        Skill.InvokeSkill(this, World.Map, SelectedTiles, clickedTile, Animations);
                         World.phase = states.ChoosePhase;
                         World.Buttons.ForEach(x => x.Hidden = false);
                         World.OrderNumber++;
@@ -399,7 +403,7 @@ namespace DagligaHatet {
                     case states.SkillPhase1:
                         break;
                     case states.AttackPhase1:
-                        Attack.InvokeSkill(this, World.Map, SelectedTiles, target);
+                        Attack.InvokeSkill(this, World.Map, SelectedTiles, target, Animations);
                         World.phase = states.ChoosePhase;
                         Step = false;
                         break;

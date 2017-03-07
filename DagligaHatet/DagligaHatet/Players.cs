@@ -100,16 +100,14 @@ namespace DagligaHatet {
         public Player(Texture2D tex, string name, Attack attack, int range, int damage, Skill skill, int skillRange, int skillDamage, int movementSpeed, int health, int alignment)
             : base(tex, name, attack, range, damage, skill, skillRange, skillDamage, movementSpeed, health, alignment) {
         }
-        
+
         public override void Update(float elapsed) {
             base.Update(elapsed);
-            
-            #region Players
+
             if (World.Buttons[0].Update(Mouse.GetState(), World.oldMouse)) {
                 if (World.phase == states.ChoosePhase) {
                     SelectedTiles.AddRange(World.FloodPath(MoveSpeed, Inhabited));
                     SelectedTiles.RemoveAll(x => x.MapCoordinate == MapCoordinate);
-                    SelectedTiles.RemoveAll(x => x.Inhabited);
                     SelectedTiles.ForEach(x => Animations.Add(World.TheMould.Find(m => m.Name == "Move").BreakTheMould(World.TranslateMapCoordinate(x.MapCoordinate))));
                     World.Buttons.Where(x => !x.Name.Contains("move")).ToList().ForEach(x => x.Hidden = true);
                     World.phase = states.MovePhase1;
@@ -151,7 +149,18 @@ namespace DagligaHatet {
             }
             if (World.Buttons[3].Update(Mouse.GetState(), World.oldMouse)) {
                 if (World.phase == states.ChoosePhase) {
-                    World.OrderNumber++;
+                    Player thisTemp = this;
+                    int index = World.AllCharacters.FindIndex(x => x == this);
+                    if (index >= World.AllCharacters.Count - 3) {
+                        World.AllCharacters.Remove(this);
+                        World.AllCharacters.Insert((index + 1) % World.AllCharacters.Count, thisTemp);
+                        World.OrderNumber++;
+                    }
+                    else {
+                        World.AllCharacters.Insert((index + 2) % World.AllCharacters.Count, thisTemp);
+                        World.AllCharacters.Remove(this);
+                    }
+
                     World.phase = states.ChoosePhase;
                 }
             }
@@ -187,7 +196,6 @@ namespace DagligaHatet {
                 }
             }
 
-            #endregion
 
         }
 
@@ -213,7 +221,6 @@ namespace DagligaHatet {
 
         public override void Update(float elapsed) {
             base.Update(elapsed);
-            #region Enmenies 
 
             Random r = new Random();
             #region reset
@@ -242,12 +249,10 @@ namespace DagligaHatet {
                             for (int i = 0; i < CanMoveTo.Count; i++) {
                                 ListCanHitMe.Clear();
                                 AllEnemies.ForEach(x => {
-
                                     SelectedTiles.Clear();
                                     x.Attack.PrepareSkill(x, World.Map, SelectedTiles, Animations);
                                     if (SelectedTiles.Exists(y => y == CanMoveTo[i]))
                                         ListCanHitMe.Add(x);
-
                                     SelectedTiles.Clear();
                                 });
                                 if (ListCanHitMe.Count <= 2) {
@@ -308,7 +313,7 @@ namespace DagligaHatet {
                         }
                         else if (CanMoveTo.Count > 0) {
 
-                            Tuple<List<Tile>, bool> pathing = World.Path2(World.Map.Where(x => !x.Inhabited || (AllEnemies.OrderByDescending(h => World.Distance(h.MapCoordinate, MapCoordinate)).Last().Inhabited == x)).ToList(), 100, Inhabited, AllEnemies.OrderByDescending(x => World.Distance(x.MapCoordinate, MapCoordinate)).Last().Inhabited);
+                            Tuple<List<Tile>, bool> pathing = World.Path2(World.Map.Where(x => (!x.Inhabited && !x.Occupied) || (AllEnemies.OrderByDescending(h => World.Distance(h.MapCoordinate, MapCoordinate)).Last().Inhabited == x)).ToList(), 100, Inhabited, AllEnemies.OrderByDescending(x => World.Distance(x.MapCoordinate, MapCoordinate)).Last().Inhabited);
                             Console.WriteLine(pathing.Item2);
                             pathing.Item1.RemoveAt(0);
                             pathing.Item1.Remove(pathing.Item1.Last());
@@ -366,7 +371,7 @@ namespace DagligaHatet {
                     }
                     else if (CanMoveTo.Count > 0 && AllFriendly.Count > 0) {
 
-                        Tuple<List<Tile>, bool> pathing = World.Path2(World.Map.Where(x => !x.Inhabited).ToList(), 100, Inhabited, 
+                        Tuple<List<Tile>, bool> pathing = World.Path2(World.Map.Where(x => !x.Inhabited && !x.Occupied).ToList(), 100, Inhabited,
                             AllFriendly.OrderByDescending(x => World.Distance(x.MapCoordinate, MapCoordinate)).Last().Inhabited);
                         Console.WriteLine(pathing.Item2);
                         pathing.Item1.RemoveAt(0);
@@ -416,8 +421,7 @@ namespace DagligaHatet {
                 World.OrderNumber++;
             }
 
-            #endregion
-            
+
         }
     }
 

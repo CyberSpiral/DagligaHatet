@@ -88,8 +88,9 @@ namespace DagligaHatet {
     }
 
     public class AttackRangeCross : Attack {
-        public AttackRangeCross(Texture2D selectedTile, Texture2D cross) : base(selectedTile, cross) {
-
+        Texture2D bolt;
+        public AttackRangeCross(Texture2D selectedTile, Texture2D bolt, Texture2D cross) : base(selectedTile, cross) {
+            this.bolt = bolt;
         }
 
         public override void PrepareSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles, List<AnimatedTexture> animations) {
@@ -108,6 +109,12 @@ namespace DagligaHatet {
             selectedTiles.Clear();
 
             return returnedData;
+        }
+
+        public override void InvokeSkill(Character turnMaster, List<Tile> map, List<Tile> selectedTiles, Tile clickedTile, List<AnimatedTexture> animations) {
+            DrawEngine.AddQueued("Bolt", bolt, turnMaster.MapCoordinate, new Vector2(10, 10), 0.2f, 2, 1f, false, clickedTile.MapCoordinate);
+            DrawEngine.AddDamageReport("", Color.White, Vector2.Zero, 1f, false, Vector2.Zero);
+            base.InvokeSkill(turnMaster, map, selectedTiles, clickedTile, animations);
         }
     }
 

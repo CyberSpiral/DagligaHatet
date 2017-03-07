@@ -195,8 +195,8 @@ namespace DagligaHatet {
 
             World.Buttons.ForEach(x => x.Draw(spriteBatch));
 
-            World.Map.ForEach(x => x.Draw(spriteBatch, Content.Load<Texture2D>("Bushes and dirt_0"), 1));
-            World.Map.ForEach(x => x.Draw(spriteBatch, Content.Load<Texture2D>("Bushes and dirt_6"), 0.99f));
+            World.Map.ForEach(x => x.Draw(spriteBatch));
+            World.Map.ForEach(x => x.Draw(spriteBatch));
 
             DrawEngine.Draw(spriteBatch, GothicFont);
             spriteBatch.End();

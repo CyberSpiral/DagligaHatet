@@ -33,7 +33,7 @@ namespace DagligaHatet {
         public static void Prepare(ContentManager content) {
             for (int x = 0; x < 20; x++) {
                 for (int y = 0; y < 16; y++) {
-                    Map.Add(new Tile(new Vector2(x, y)));
+                    Map.Add(new Tile(new Vector2(x, y), content.Load<Texture2D>("Bushes and dirt_0"), content.Load<Texture2D>("Bushes and dirt_6")));
                 }
             }
             Board = new BillBoard(content.Load<Texture2D>("Pinboard"), content.Load<Texture2D>("Art"), content.Load<Texture2D>("Dot"), new Vector2(100, 730));
@@ -58,7 +58,7 @@ namespace DagligaHatet {
             AllCharacters.Add(tempTile.Inhabitant);
 
             tempTile = GetTile(new Vector2(3, 3));
-            tempTile.AddInhabitor(new Player(content.Load<Texture2D>("Wizard1"), "Wizard", new AttackRangeCross(content.Load<Texture2D>("Sword"),
+            tempTile.AddInhabitor(new Player(content.Load<Texture2D>("Wizard1"), "Wizard", new AttackRangeCross(content.Load<Texture2D>("Sword"), content.Load<Texture2D>("Fieer"),
                 content.Load<Texture2D>("Cross")), 4 /*Range*/, 3 /*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")),
                 100 /*Skill Range*/, 3 /*Skill Damage*/, 5 /*Movement Speed*/, 10 /*Health*/, 0/*Alignment*/));
             AllCharacters.Add(tempTile.Inhabitant);
@@ -71,23 +71,29 @@ namespace DagligaHatet {
 
 
             tempTile = GetTile(new Vector2(9, 9));
-            tempTile.AddInhabitor(new Evil(content.Load<Texture2D>("S"), "Skeleton", new AttackRangeCross(content.Load<Texture2D>("Sword"),
+            tempTile.AddInhabitor(new Evil(content.Load<Texture2D>("S"), "Skeleton", new AttackRangeCross(content.Load<Texture2D>("Sword"), content.Load<Texture2D>("Fieer"),
                 content.Load<Texture2D>("Cross")), 5/*Range*/, 3/*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")),
                 3 /*Skill Range*/, 2/*Skill Damage*/, 4/*Movement Speed*/, 14/*Health*/, 1/*Alignment*/));
+            tempTile.Inhabitant.Rotation = (float)Math.PI;
             AllCharacters.Add(tempTile.Inhabitant);
 
             tempTile = GetTile(new Vector2(13, 10));
             tempTile.AddInhabitor(new Evil(content.Load<Texture2D>("S2"), "Frost demon", new AttackMelee(content.Load<Texture2D>("Sword"),
                 content.Load<Texture2D>("Cross")), 3/*Range*/, 4/*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")),
                 3 /*Skill Range*/, 2/*Skill Damage*/, 4/*Movement Speed*/, 18/*Health*/, 1/*Alignment*/));
+            tempTile.Inhabitant.Rotation = (float)Math.PI;
             AllCharacters.Add(tempTile.Inhabitant);
 
             tempTile = GetTile(new Vector2(12, 12));
             tempTile.AddInhabitor(new Evil(content.Load<Texture2D>("S3"), "Wraith", new AttackRangeXCross(content.Load<Texture2D>("Sword"),
                 content.Load<Texture2D>("Botched Arrow"), content.Load<Texture2D>("Cross")), 4/*Range*/, 3/*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")),
                 3 /*Skill Range*/, 2/*Skill Damage*/, 5/*Movement Speed*/, 10/*Health*/, 1/*Alignment*/));
+            tempTile.Inhabitant.Rotation = (float)Math.PI;
             AllCharacters.Add(tempTile.Inhabitant);
 
+            for (int i = 0; i < 15; i++) {
+                GetTile(new Vector2(7, i)).Cement(content.Load<Texture2D>("Bushes and dirt_1"));
+            }
 
             var rnd = new Random();
             AllCharacters = AllCharacters.OrderBy(x => rnd.Next()).ToList();
@@ -238,7 +244,7 @@ namespace DagligaHatet {
         public static List<Tile> FloodPath(int distance, Tile start) {
             List<Flood> floodList = new List<Flood>();
             Map.ForEach(x => {
-                if (x.Inhabited)
+                if (x.Inhabited || x.Occupied)
                     floodList.Add(new Flood(x.MapCoordinate, -1));
                 else
                     floodList.Add(new Flood(x.MapCoordinate, 0));
@@ -345,8 +351,11 @@ namespace DagligaHatet {
         public Vector2 MapCoordinate { get; set; }
         public Rectangle Collision { get { return new Rectangle((int)World.TranslateMapCoordinate(MapCoordinate).X, (int)World.TranslateMapCoordinate(MapCoordinate).Y, 40, 40); } }
 
+        public bool Occupied { get; set; } = false;
         public bool Inhabited { get; set; } = false;
         public Character Inhabitant { get; set; } = null;
+        private Texture2D Texture { get; set; }
+        private Texture2D Border { get; }
 
 
         public void MoveInhabited(Tile target) {
@@ -363,12 +372,19 @@ namespace DagligaHatet {
             RemoveInhabitor();
         }
 
-        public Tile(Vector2 mapPosition) {
+        public Tile(Vector2 mapPosition, Texture2D texture, Texture2D borderTexture) {
             MapCoordinate = mapPosition;
+            Texture = texture;
+            Border = borderTexture;
+        }
+        public void Cement(Texture2D texture) {
+            Occupied = true;
+            Texture = texture;
         }
 
-        public void Draw(SpriteBatch spriteBatch, Texture2D tex, float layer) {
-            spriteBatch.Draw(tex, Collision, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, layer);
+        public void Draw(SpriteBatch spriteBatch) {
+            spriteBatch.Draw(Texture, Collision, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 1);
+            spriteBatch.Draw(Border, Collision, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0.99f);
         }
         public void AddInhabitor(Character inhabitor) {
             inhabitor.Inhabited = this;

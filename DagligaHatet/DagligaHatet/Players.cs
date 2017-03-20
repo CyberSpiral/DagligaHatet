@@ -151,15 +151,15 @@ namespace DagligaHatet {
                 if (World.phase == states.ChoosePhase) {
                     Player thisTemp = this;
                     int index = World.AllCharacters.FindIndex(x => x == this);
-                    if (index >= World.AllCharacters.Count - 3) {
-                        World.AllCharacters.Remove(this);
-                        World.AllCharacters.Insert((index + 1) % World.AllCharacters.Count, thisTemp);
+                    index += 2;
+                    if (index % (World.AllCharacters.Count) != index)  {
+                        index = (index % World.AllCharacters.Count);
                         World.OrderNumber++;
                     }
-                    else {
-                        World.AllCharacters.Insert((index + 2) % World.AllCharacters.Count, thisTemp);
-                        World.AllCharacters.Remove(this);
-                    }
+                    World.AllCharacters.Remove(this);
+                    World.AllCharacters.Insert(index, thisTemp);
+
+                    
 
                     World.phase = states.ChoosePhase;
                 }

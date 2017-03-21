@@ -6,6 +6,7 @@ using System.Text;
 namespace DagligaHatet {
 
     enum states {
-        MovePhase1, SkillPhase1, AttackPhase1, ChoosePhase
+        MovePhase1, SkillPhase1, AttackPhase1, ChoosePhase,
+        SkipPhase
     }
 }

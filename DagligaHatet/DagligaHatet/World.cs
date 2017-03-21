@@ -167,7 +167,8 @@ namespace DagligaHatet {
                     }
                 });
             }
-            while (true) {
+
+            for (int y = 0; y < 200; y++) {
                 if (floodList.Find(x => x.MapPosition == start.MapCoordinate).Steps == -1) {
                     Map.ForEach(x => {
                         if (acceptable.Contains(x))
@@ -239,6 +240,8 @@ namespace DagligaHatet {
                     }
                 }
             }
+
+            return null;
         }
 
         public static List<Tile> FloodPath(int distance, Tile start) {

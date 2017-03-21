@@ -33,7 +33,7 @@ namespace DagligaHatet {
         public static void Prepare(ContentManager content) {
             for (int x = 0; x < 20; x++) {
                 for (int y = 0; y < 16; y++) {
-                    Map.Add(new Tile(new Vector2(x, y), content.Load<Texture2D>("Bushes and dirt_0"), content.Load<Texture2D>("Bushes and dirt_6")));
+                    Map.Add(new Tile(new Vector2(x, y), content.Load<Texture2D>("Bushes and dirt_0"), content.Load<Texture2D>("Bushes and dirt_7")));
                 }
             }
             Board = new BillBoard(content.Load<Texture2D>("Pinboard"), content.Load<Texture2D>("Art"), content.Load<Texture2D>("Dot"), new Vector2(100, 730));
@@ -91,12 +91,89 @@ namespace DagligaHatet {
             tempTile.Inhabitant.Rotation = (float)Math.PI;
             AllCharacters.Add(tempTile.Inhabitant);
 
-            for (int i = 0; i < 15; i++) {
-                GetTile(new Vector2(7, i)).Cement(content.Load<Texture2D>("Bushes and dirt_1"));
-            }
 
             var rnd = new Random();
             AllCharacters = AllCharacters.OrderBy(x => rnd.Next()).ToList();
+        }
+
+        public static void PrepareCliff(ContentManager content) {
+            for (int x = 0; x < 20; x++) {
+                for (int y = 0; y < 16; y++) {
+                    Map.Add(new Tile(new Vector2(x, y), content.Load<Texture2D>("Bushes and dirt_0"), content.Load<Texture2D>("Bushes and dirt_7")));
+                }
+            }
+            Board = new BillBoard(content.Load<Texture2D>("Pinboard"), content.Load<Texture2D>("Art"), content.Load<Texture2D>("Dot"), new Vector2(100, 730));
+
+            moveButton = new Button(new Rectangle(120, 10, 100, 60), content.Load<Texture2D>("Move"), "moveButton");
+            attackButton = new Button(new Rectangle(320, 10, 100, 60), content.Load<Texture2D>("Attack"), "attackButton");
+            skillButton = new Button(new Rectangle(520, 10, 100, 60), content.Load<Texture2D>("Skill"), "skillButton");
+            skipButton = new Button(new Rectangle(720, 10, 100, 60), content.Load<Texture2D>("Skip"), "skipButton");
+            Buttons.Add(moveButton);
+            Buttons.Add(attackButton);
+            Buttons.Add(skillButton);
+            Buttons.Add(skipButton);
+
+            TheMould.Add(new AnimatedTextureMould(content.Load<Texture2D>("MoveAni"), "Move", Vector2.Zero, 0, 0, 2, 0.4f));
+
+            Tile tempTile;
+
+            tempTile = GetTile(new Vector2(2, 3));
+            tempTile.AddInhabitor(new Player(content.Load<Texture2D>("Knight1"), "Knight", new AttackMelee(content.Load<Texture2D>("Sword"),
+                content.Load<Texture2D>("Cross")), 3 /*Range*/, 3 /*Damage*/, new SkillKnightWhirlwind(content.Load<Texture2D>("Sword"),
+                content.Load<Texture2D>("WhirlwindAni")), 2 /*Skill Range*/, 2 /*Skill Damage*/, 4 /*Movement Speedu*/, 14 /*Health*/, 0/*Alignment*/));
+            AllCharacters.Add(tempTile.Inhabitant);
+
+            tempTile = GetTile(new Vector2(8, 8));
+            tempTile.AddInhabitor(new Player(content.Load<Texture2D>("Wizard1"), "Wizard", new AttackRangeCross(content.Load<Texture2D>("Sword"), content.Load<Texture2D>("Fieer"),
+                content.Load<Texture2D>("Cross")), 4 /*Range*/, 3 /*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")),
+                100 /*Skill Range*/, 3 /*Skill Damage*/, 5 /*Movement Speed*/, 10 /*Health*/, 0/*Alignment*/));
+            AllCharacters.Add(tempTile.Inhabitant);
+
+            tempTile = GetTile(new Vector2(5, 13));
+            tempTile.AddInhabitor(new Player(content.Load<Texture2D>("Ranger1"), "Ranger", new AttackRangeXCross(content.Load<Texture2D>("Sword"),
+                content.Load<Texture2D>("Botched Arrow"), content.Load<Texture2D>("Cross")), 5 /*Range*/, 2 /*Damage*/, new SkillRangerBomb(content.Load<Texture2D>("Sword"),
+                content.Load<Texture2D>("Ex"), content.Load<Texture2D>("Botched Arrow"), content.Load<Texture2D>("Target")), 4 /*Skill Range*/, 3 /*Skill Damage*/, 6 /*Movement Speed*/, 13 /*Health*/, 0/*Alignment*/));
+            AllCharacters.Add(tempTile.Inhabitant);
+
+
+            tempTile = GetTile(new Vector2(14, 4));
+            tempTile.AddInhabitor(new Evil(content.Load<Texture2D>("S"), "Skeleton", new AttackRangeCross(content.Load<Texture2D>("Sword"), content.Load<Texture2D>("Fieer"),
+                content.Load<Texture2D>("Cross")), 5/*Range*/, 3/*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")),
+                3 /*Skill Range*/, 2/*Skill Damage*/, 4/*Movement Speed*/, 14/*Health*/, 1/*Alignment*/));
+            tempTile.Inhabitant.Rotation = (float)Math.PI;
+            AllCharacters.Add(tempTile.Inhabitant);
+
+            tempTile = GetTile(new Vector2(17, 13));
+            tempTile.AddInhabitor(new Evil(content.Load<Texture2D>("S2"), "Frost demon", new AttackMelee(content.Load<Texture2D>("Sword"),
+                content.Load<Texture2D>("Cross")), 3/*Range*/, 4/*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")),
+                3 /*Skill Range*/, 2/*Skill Damage*/, 4/*Movement Speed*/, 18/*Health*/, 1/*Alignment*/));
+            tempTile.Inhabitant.Rotation = (float)Math.PI;
+            AllCharacters.Add(tempTile.Inhabitant);
+
+            tempTile = GetTile(new Vector2(12, 12));
+            tempTile.AddInhabitor(new Evil(content.Load<Texture2D>("S3"), "Wraith", new AttackRangeXCross(content.Load<Texture2D>("Sword"),
+                content.Load<Texture2D>("Botched Arrow"), content.Load<Texture2D>("Cross")), 4/*Range*/, 3/*Damage*/, new SkillWizardHeal(content.Load<Texture2D>("HealAnimation")),
+                3 /*Skill Range*/, 2/*Skill Damage*/, 5/*Movement Speed*/, 10/*Health*/, 1/*Alignment*/));
+            tempTile.Inhabitant.Rotation = (float)Math.PI;
+            AllCharacters.Add(tempTile.Inhabitant);
+
+
+            var rnd = new Random();
+            AllCharacters = AllCharacters.OrderBy(x => rnd.Next()).ToList();
+
+            for (int i = 0; i < 2; i++) {
+                GetTile(new Vector2(10 - i, 0)).Cement(content.Load<Texture2D>("Bushes and dirt_1"));
+                GetTile(new Vector2(10 - i, 6)).Cement(content.Load<Texture2D>("Bushes and dirt_9"));
+                for (int x = 0; x < 5; x++) {
+                    GetTile(new Vector2(10 - i, x + 1)).Cement(content.Load<Texture2D>("Bushes and dirt_6"));
+                }
+                GetTile(new Vector2(10 - i, 9)).Cement(content.Load<Texture2D>("Bushes and dirt_1"));
+                GetTile(new Vector2(10 - i, 15)).Cement(content.Load<Texture2D>("Bushes and dirt_9"));
+                for (int x = 0; x < 5; x++) {
+                    GetTile(new Vector2(10 - i, x + 10)).Cement(content.Load<Texture2D>("Bushes and dirt_6"));
+                }
+            }
+
         }
 
         /// <summary>
@@ -241,7 +318,7 @@ namespace DagligaHatet {
                 }
             }
 
-            return null;
+            return new Tuple<List<Tile>, bool>(null,false);
         }
 
         public static List<Tile> FloodPath(int distance, Tile start) {

@@ -90,6 +90,9 @@ namespace DagligaHatet {
         public virtual void Update(float elapsed) {
             AllEnemies = World.AllCharacters.Where(x => x.Alignment != Alignment).ToList();
             AllFriendly = World.AllCharacters.Where(x => x.Alignment == Alignment && x != this).ToList();
+        }
+
+        public virtual void AnimationUpdate(float elapsed   ) {
             Animations.ForEach(x => x.Update(elapsed));
         }
 
@@ -153,14 +156,11 @@ namespace DagligaHatet {
                     int index = World.AllCharacters.FindIndex(x => x == this);
                     index += 2;
                     if (index % (World.AllCharacters.Count) != index)  {
-                        index = (index % World.AllCharacters.Count);
+                        index = ((index+1) % World.AllCharacters.Count);
                         World.OrderNumber++;
                     }
                     World.AllCharacters.Remove(this);
                     World.AllCharacters.Insert(index, thisTemp);
-
-                    
-
                     World.phase = states.ChoosePhase;
                 }
             }
@@ -199,10 +199,6 @@ namespace DagligaHatet {
 
         }
 
-        public override void Draw(SpriteBatch sB) {
-            base.Draw(sB);
-        }
-
     }
 
     public class Evil : Character {
@@ -221,6 +217,7 @@ namespace DagligaHatet {
 
         public override void Update(float elapsed) {
             base.Update(elapsed);
+            
 
             Random r = new Random();
             #region reset
@@ -260,6 +257,7 @@ namespace DagligaHatet {
                                     SelectedTiles = CanMoveTo;
                                     target = CanMoveTo[i];
                                     World.phase = states.MovePhase1;
+                                    SelectedTiles.ForEach(x => Animations.Add(World.TheMould.Find(m => m.Name == "Move").BreakTheMould(World.TranslateMapCoordinate(x.MapCoordinate))));
                                     DrawEngine.AddPause(2f);
                                     Step = true;
                                     break;
@@ -278,6 +276,7 @@ namespace DagligaHatet {
                                     target = CanMoveTo[r.Next(CanMoveTo.Count)];
                                     SelectedTiles = CanMoveTo;
                                     World.phase = states.MovePhase1;
+                                    SelectedTiles.ForEach(x => Animations.Add(World.TheMould.Find(m => m.Name == "Move").BreakTheMould(World.TranslateMapCoordinate(x.MapCoordinate))));
                                     DrawEngine.AddPause(2f);
                                     Step = true;
                                 }
@@ -315,20 +314,26 @@ namespace DagligaHatet {
 
                             Tuple<List<Tile>, bool> pathing = World.Path2(World.Map.Where(x => (!x.Inhabited && !x.Occupied) || (AllEnemies.OrderByDescending(h => World.Distance(h.MapCoordinate, MapCoordinate)).Last().Inhabited == x)).ToList(), 100, Inhabited, AllEnemies.OrderByDescending(x => World.Distance(x.MapCoordinate, MapCoordinate)).Last().Inhabited);
                             Console.WriteLine(pathing.Item2);
-                            pathing.Item1.RemoveAt(0);
-                            pathing.Item1.Remove(pathing.Item1.Last());
-                            int farthest = 0;
-                            for (int i = 0; i < pathing.Item1.Count; i++) {
-                                if (CanMoveTo.Exists(x => x.MapCoordinate == pathing.Item1[i].MapCoordinate)) {
-                                    farthest = i;
-                                }
-                                else
-                                    break;
+                            if (!pathing.Item2) {
+                                World.phase = states.SkipPhase;
                             }
-                            target = pathing.Item1[farthest];
-                            //Moving
-                            World.phase = states.MovePhase1;
-                            DrawEngine.AddPause(2f);
+                            else {
+                                pathing.Item1.RemoveAt(0);
+                                pathing.Item1.Remove(pathing.Item1.Last());
+                                int farthest = 0;
+                                for (int i = 0; i < pathing.Item1.Count; i++) {
+                                    if (CanMoveTo.Exists(x => x.MapCoordinate == pathing.Item1[i].MapCoordinate)) {
+                                        farthest = i;
+                                    }
+                                    else
+                                        break;
+                                }
+                                target = pathing.Item1[farthest];
+                                //Moving
+                                World.phase = states.MovePhase1;
+                                CanMoveTo.ForEach(x => Animations.Add(World.TheMould.Find(m => m.Name == "Move").BreakTheMould(World.TranslateMapCoordinate(x.MapCoordinate))));
+                                DrawEngine.AddPause(2f);
+                            }
                             Step = true;
 
 
@@ -356,6 +361,7 @@ namespace DagligaHatet {
                                 SelectedTiles = CanMoveTo;
                                 target = CanMoveTo[i];
                                 World.phase = states.MovePhase1;
+                                SelectedTiles.ForEach(x => Animations.Add(World.TheMould.Find(m => m.Name == "Move").BreakTheMould(World.TranslateMapCoordinate(x.MapCoordinate))));
                                 DrawEngine.AddPause(2f);
                                 Step = true;
                                 break;
@@ -374,23 +380,30 @@ namespace DagligaHatet {
                         Tuple<List<Tile>, bool> pathing = World.Path2(World.Map.Where(x => !x.Inhabited && !x.Occupied).ToList(), 100, Inhabited,
                             AllFriendly.OrderByDescending(x => World.Distance(x.MapCoordinate, MapCoordinate)).Last().Inhabited);
                         Console.WriteLine(pathing.Item2);
-                        pathing.Item1.RemoveAt(0);
-                        pathing.Item1.Remove(pathing.Item1.Last());
-                        if (pathing.Item1.Count > 0) {
-                            int farthest = 0;
-                            for (int i = 0; i < pathing.Item1.Count; i++) {
-                                if (CanMoveTo.Exists(x => x.MapCoordinate == pathing.Item1[i].MapCoordinate)) {
-                                    farthest = i;
+                        if (pathing.Item2) {
+                            pathing.Item1.RemoveAt(0);
+                            pathing.Item1.Remove(pathing.Item1.Last());
+                            if (pathing.Item1.Count > 0) {
+                                int farthest = 0;
+                                for (int i = 0; i < pathing.Item1.Count; i++) {
+                                    if (CanMoveTo.Exists(x => x.MapCoordinate == pathing.Item1[i].MapCoordinate)) {
+                                        farthest = i;
+                                    }
+                                    else
+                                        break;
                                 }
-                                else
-                                    break;
+                                target = pathing.Item1[farthest];
+                                //Moving
+                                World.phase = states.MovePhase1;
+                                CanMoveTo.ForEach(x => Animations.Add(World.TheMould.Find(m => m.Name == "Move").BreakTheMould(World.TranslateMapCoordinate(x.MapCoordinate))));
+                                DrawEngine.AddPause(2f);
                             }
-                            target = pathing.Item1[farthest];
-                            //Moving
-                            World.phase = states.MovePhase1;
-                            DrawEngine.AddPause(2f);
-                            Step = true;
+                            else
+                                World.phase = states.SkipPhase;
                         }
+                        else
+                            World.phase = states.SkipPhase;
+                        Step = true;
 
                     }
                     #endregion
@@ -400,6 +413,7 @@ namespace DagligaHatet {
             else if (Step) {
                 switch (World.phase) {
                     case states.MovePhase1:
+                        Animations.RemoveAll(x => x.Name == "Move");
                         SelectedTiles = CanMoveTo;
                         Inhabited.MoveInhabited(target);
                         World.phase = states.ChoosePhase;
@@ -410,6 +424,20 @@ namespace DagligaHatet {
                     case states.AttackPhase1:
                         Attack.InvokeSkill(this, World.Map, SelectedTiles, target, Animations);
                         World.phase = states.ChoosePhase;
+                        Step = false;
+                        break;
+                    case states.SkipPhase:
+                        Evil thisTemp = this;
+                        int index = World.AllCharacters.FindIndex(x => x == this);
+                        index += 2;
+                        if (index % (World.AllCharacters.Count) != index) {
+                            index = ((index + 1) % World.AllCharacters.Count);
+                            World.OrderNumber++;
+                        }
+                        World.AllCharacters.Remove(this);
+                        World.AllCharacters.Insert(index, thisTemp);
+                        World.phase = states.ChoosePhase;
+                        World.OrderNumber--;
                         Step = false;
                         break;
                     default:

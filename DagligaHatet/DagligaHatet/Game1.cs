@@ -139,7 +139,7 @@ namespace DagligaHatet {
             /*if (oldMouse.LeftButton == ButtonState.Released && Mouse.GetState().LeftButton == ButtonState.Pressed) {
                 OnClicked(EventArgs.Empty);
             }*/
-
+            World.AllCharacters.ForEach(x => x.AnimationUpdate((float)gameTime.ElapsedGameTime.TotalSeconds));
             if (DrawEngine.QueuedAnimations.Count == 0) {
 
                 World.Map.Where(x => x.Inhabited).ToList().ForEach(x => {
